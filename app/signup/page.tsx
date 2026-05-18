@@ -3,8 +3,10 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useRedirectIfAuthenticated } from "@/lib/use-session"
 
 export default function SignupPage() {
+  useRedirectIfAuthenticated()
   const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [acceptedTerms, setAcceptedTerms] = useState(false)

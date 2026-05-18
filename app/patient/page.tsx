@@ -1,8 +1,10 @@
 "use client"
 
+import { useState } from "react"
 import { usePathname } from "next/navigation"
 import { TopAppBar } from "@/components/top-app-bar"
 import { BottomNavBar } from "@/components/bottom-nav-bar"
+import { NewConsultationModal } from "@/components/new-consultation-modal"
 import { consultations } from "@/lib/mock-data"
 
 function getInitials(name: string): string {
@@ -22,6 +24,7 @@ const avatarColors = [
 
 export default function PatientDashboard() {
   const pathname = usePathname()
+  const [showModal, setShowModal] = useState(false)
 
   const navItems = [
     { label: "Inicio", icon: "home", href: "/patient", active: pathname === "/patient" },
@@ -38,7 +41,10 @@ export default function PatientDashboard() {
         <section className="primary-gradient rounded-3xl p-6 text-white shadow-[0_12px_48px_rgba(0,100,124,0.2)]">
           <p className="font-body text-sm text-white/80">Créditos disponibles</p>
           <h2 className="font-headline text-4xl font-bold tracking-tight mt-1">3 Tokens</h2>
-          <button className="mt-4 bg-white/20 backdrop-blur-md text-white font-semibold font-label text-sm px-5 py-2.5 rounded-xl hover:bg-white/30 active:scale-[0.97] transition-all">
+          <button
+            onClick={() => setShowModal(true)}
+            className="mt-4 bg-white/20 backdrop-blur-md text-white font-semibold font-label text-sm px-5 py-2.5 rounded-xl hover:bg-white/30 active:scale-[0.97] transition-all"
+          >
             Nueva consulta
           </button>
         </section>
@@ -113,6 +119,8 @@ export default function PatientDashboard() {
         </section>
       </main>
       <BottomNavBar items={navItems} />
+
+      <NewConsultationModal open={showModal} onClose={() => setShowModal(false)} />
     </div>
   )
 }

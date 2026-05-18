@@ -4,14 +4,18 @@ import { use } from "react"
 import { usePathname } from "next/navigation"
 import { TopAppBar } from "@/components/top-app-bar"
 import { BottomNavBar } from "@/components/bottom-nav-bar"
+import { store } from "@/lib/mock-store"
 
 export default function ConsultationPage({
   params,
 }: {
   params: Promise<{ id: string }>
 }) {
-  use(params)
+  const { id } = use(params)
   const pathname = usePathname()
+
+  const consultation = store.getConsultation(id)
+  const patient = consultation?.patient ?? store.getPatientProfile()
 
   return (
     <div className="min-h-screen bg-background pb-32">
@@ -123,13 +127,15 @@ export default function ConsultationPage({
 
               <div className="flex items-center gap-3 mb-5">
                 <div className="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-base font-bold text-on-surface-variant">
-                  SM
+                  {patient.initials}
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-on-surface">
-                    Sarah Mitchell
+                    {patient.name}
                   </p>
-                  <p className="text-xs text-on-surface-variant">28 años · Femenino</p>
+                  <p className="text-xs text-on-surface-variant">
+                    {patient.age} años &middot; {patient.gender}
+                  </p>
                 </div>
               </div>
 
@@ -138,12 +144,20 @@ export default function ConsultationPage({
                   Alergias
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-error-container text-error">
-                    Penicilina
-                  </span>
-                  <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-error-container text-error">
-                    Látex
-                  </span>
+                  {patient.allergies.length > 0 ? (
+                    patient.allergies.map((a) => (
+                      <span
+                        key={a}
+                        className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-error-container text-error"
+                      >
+                        {a}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-xs text-on-surface-variant/70">
+                      Sin alergias registradas
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -152,52 +166,219 @@ export default function ConsultationPage({
                   Medicación activa
                 </p>
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[16px] text-primary">
-                      medication
+                  {patient.medications.length > 0 ? (
+                    patient.medications.map((m) => (
+                      <div key={m} className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[16px] text-primary">
+                          medication
+                        </span>
+                        <span className="text-xs text-on-surface">{m}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <span className="text-xs text-on-surface-variant/70">
+                      Sin medicación activa
                     </span>
-                    <span className="text-xs text-on-surface">Albuterol</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[16px] text-primary">
-                      medication
-                    </span>
-                    <span className="text-xs text-on-surface">
-                      Multivitamínico
-                    </span>
-                  </div>
+                  )}
                 </div>
               </div>
 
-              <div>
+              <div className="mb-5">
                 <p className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider mb-2">
                   Signos vitales
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="bg-surface-container-low rounded-xl p-3 text-center">
-                    <p className="text-xs text-on-surface-variant">Presión arterial</p>
+                    <p className="text-xs text-on-surface-variant">
+                      Presión arterial
+                    </p>
                     <p className="text-lg font-bold font-headline text-on-surface">
-                      118/76
+                      {patient.bloodPressure}
                     </p>
                   </div>
                   <div className="bg-surface-container-low rounded-xl p-3 text-center">
-                    <p className="text-xs text-on-surface-variant">Frecuencia cardíaca</p>
+                    <p className="text-xs text-on-surface-variant">
+                      Frecuencia cardíaca
+                    </p>
                     <p className="text-lg font-bold font-headline text-on-surface">
-                      72 <span className="text-xs font-normal text-on-surface-variant">lpm</span>
+                      {patient.heartRate}{" "}
+                      <span className="text-xs font-normal text-on-surface-variant">
+                        lpm
+                      </span>
                     </p>
                   </div>
                 </div>
               </div>
+
+              <div className="border-t border-outline-variant/20 my-5" />
+
+              <details className="group mb-3">
+                <summary className="flex items-center justify-between cursor-pointer list-none py-1 text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider">
+                  <span>Historial Clínico</span>
+                  <span className="material-symbols-outlined text-[18px] text-on-surface-variant transition-transform duration-200 group-open:rotate-180">
+                    expand_more
+                  </span>
+                </summary>
+                <div className="mt-3 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[18px] text-error shrink-0">
+                      water_drop
+                    </span>
+                    <span className="text-xs text-on-surface">
+                      <span className="font-semibold">Grupo Sanguíneo:</span>{" "}
+                      {patient.bloodType}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[18px] text-primary shrink-0">
+                      straighten
+                    </span>
+                    <span className="text-xs text-on-surface">
+                      <span className="font-semibold">Altura / Peso:</span>{" "}
+                      {patient.height} / {patient.weight}
+                    </span>
+                  </div>
+
+                  {patient.chronicConditions.length > 0 && (
+                    <div>
+                      <p className="text-[11px] font-semibold text-on-surface-variant mb-1.5">
+                        Condiciones Crónicas
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {patient.chronicConditions.map((c) => (
+                          <span
+                            key={c}
+                            className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full bg-surface-container-high text-on-surface"
+                          >
+                            <span className="material-symbols-outlined text-[14px] text-tertiary">
+                              pill
+                            </span>
+                            {c}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {patient.surgeries.length > 0 && (
+                    <div>
+                      <p className="text-[11px] font-semibold text-on-surface-variant mb-1.5">
+                        Cirugías Previas
+                      </p>
+                      <div className="space-y-1.5">
+                        {patient.surgeries.map((s) => (
+                          <div
+                            key={s.name}
+                            className="flex items-center gap-2"
+                          >
+                            <span className="material-symbols-outlined text-[16px] text-on-surface-variant shrink-0">
+                              surgery
+                            </span>
+                            <span className="text-xs text-on-surface">
+                              {s.name}
+                              <span className="text-on-surface-variant">
+                                {" "}
+                                &middot; {s.year}
+                              </span>
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {patient.familyHistory.length > 0 && (
+                    <div>
+                      <p className="text-[11px] font-semibold text-on-surface-variant mb-1.5">
+                        Antecedentes Familiares
+                      </p>
+                      <div className="space-y-1.5">
+                        {patient.familyHistory.map((f) => (
+                          <div
+                            key={f}
+                            className="flex items-center gap-2"
+                          >
+                            <span className="material-symbols-outlined text-[16px] text-on-surface-variant shrink-0">
+                              diversity_3
+                            </span>
+                            <span className="text-xs text-on-surface">{f}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </details>
+
+              <div className="border-t border-outline-variant/20 my-5" />
+
+              <details className="group mb-3">
+                <summary className="flex items-center justify-between cursor-pointer list-none py-1 text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider">
+                  <span>Vacunas</span>
+                  <span className="material-symbols-outlined text-[18px] text-on-surface-variant transition-transform duration-200 group-open:rotate-180">
+                    expand_more
+                  </span>
+                </summary>
+                <div className="mt-3 space-y-2">
+                  {patient.vaccines.map((v) => (
+                    <div
+                      key={v.name}
+                      className="flex items-center justify-between bg-surface-container-low rounded-lg px-3 py-2"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="material-symbols-outlined text-[16px] text-tertiary shrink-0">
+                          vaccines
+                        </span>
+                        <span className="text-xs text-on-surface truncate">
+                          {v.name}
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-on-surface-variant shrink-0 ml-2">
+                        {v.date}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </details>
+
+              <div className="border-t border-outline-variant/20 my-5" />
+
+              <div className="flex flex-col gap-3">
+                <button className="w-full text-sm font-semibold text-on-surface-variant px-5 py-3 rounded-xl border border-outline-variant hover:bg-surface-container-low transition-all">
+                  Solicitar análisis
+                </button>
+                <button className="w-full text-sm font-semibold text-white px-5 py-3 rounded-xl primary-gradient shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+                  Finalizar consulta
+                </button>
+              </div>
             </div>
 
-            <div className="flex flex-col gap-3">
-              <button className="w-full text-sm font-semibold text-on-surface-variant px-5 py-3 rounded-xl border border-outline-variant hover:bg-surface-container-low transition-all">
-                Solicitar análisis
-              </button>
-              <button className="w-full text-sm font-semibold text-white px-5 py-3 rounded-xl primary-gradient shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
-                Finalizar consulta
-              </button>
-            </div>
+            {patient.emergencyContact && (
+              <div className="bg-white rounded-xl p-4 shadow-[0_12px_48px_rgba(25,28,30,0.06)]">
+                <p className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider mb-3">
+                  Contacto de emergencia
+                </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-tertiary-container flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-[20px] text-tertiary">
+                      emergency
+                    </span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-on-surface truncate">
+                      {patient.emergencyContact.name}
+                    </p>
+                    <p className="text-xs text-on-surface-variant">
+                      {patient.emergencyContact.phone}
+                    </p>
+                    <p className="text-[11px] text-on-surface-variant/70">
+                      {patient.emergencyContact.relation}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -246,9 +427,24 @@ export default function ConsultationPage({
       <BottomNavBar
         items={[
           { label: "Inicio", icon: "home", href: "/doctor", active: false },
-          { label: "Consultas", icon: "group", href: "/doctor/consultations", active: pathname.startsWith("/doctor/consultations") },
-          { label: "Agenda", icon: "calendar_month", href: "/doctor", active: false },
-          { label: "Perfil", icon: "person", href: "/doctor", active: false },
+          {
+            label: "Consultas",
+            icon: "group",
+            href: "/doctor/consultations",
+            active: pathname.startsWith("/doctor/consultations"),
+          },
+          {
+            label: "Agenda",
+            icon: "calendar_month",
+            href: "/doctor",
+            active: false,
+          },
+          {
+            label: "Perfil",
+            icon: "person",
+            href: "/doctor",
+            active: false,
+          },
         ]}
       />
     </div>

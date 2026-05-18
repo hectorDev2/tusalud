@@ -4,10 +4,13 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { TopAppBar } from "@/components/top-app-bar"
+import { useSession, useRedirectIfAuthenticated } from "@/lib/use-session"
 
 type LoginMethod = "password" | "magic-link"
 
 export default function LoginPage() {
+  useRedirectIfAuthenticated()
+  const { saveUser } = useSession()
   const router = useRouter()
   const [method, setMethod] = useState<LoginMethod>("password")
   const [showPassword, setShowPassword] = useState(false)
@@ -35,7 +38,7 @@ export default function LoginPage() {
       return
     }
 
-    localStorage.setItem("user", JSON.stringify(json.data.user))
+    saveUser(json.data.user)
 
     const role = json.data.user.role
     if (role === "doctor") router.push("/doctor")
