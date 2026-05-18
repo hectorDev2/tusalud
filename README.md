@@ -90,3 +90,38 @@ app/
 components/          # Componentes compartidos
 lib/                 # Mock data y tipos
 ```
+
+## Deploy (Vercel)
+
+Recomendado: desplegar usando Vercel (detecta Next.js automáticamente).
+
+Pasos rápidos:
+
+1. Crear un repo en GitHub y pushear la rama `master` / `main`:
+
+```bash
+git remote add origin <YOUR_REMOTE_URL>
+git push -u origin master
+```
+
+2. En Vercel: "New Project" → importa el repo desde GitHub. Vercel detectará Next.js.
+
+3. Añadí un archivo de ejemplo de variables de entorno: `.env.example`. No subas tus secretos.
+
+4. Setear variables en el dashboard de Vercel (Environment Variables) según necesites, por ejemplo:
+
+- `NEXT_PUBLIC_API_URL`
+- `DATABASE_URL` (producción)
+- `NEXTAUTH_URL`
+
+5. Opcional: `vercel.json` incluido para referencia de build.
+
+Comandos locales:
+
+```bash
+npm run build
+npm run start
+```
+
+Si querés que configure integración automática con un proveedor (Supabase, Prisma, Auth, etc.), decime cuál y lo agrego.
+
