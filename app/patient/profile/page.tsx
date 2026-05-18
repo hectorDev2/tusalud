@@ -1,11 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { TopAppBar } from "@/components/top-app-bar"
 import { BottomNavBar } from "@/components/bottom-nav-bar"
 
 export default function PatientProfilePage() {
+  const router = useRouter()
   const pathname = usePathname()
 
   const navItems = [
@@ -185,7 +186,13 @@ export default function PatientProfilePage() {
               </div>
             </section>
 
-            <button className="w-full rounded-xl border-2 border-error px-6 py-3 font-label text-sm font-semibold text-error transition-colors hover:bg-error-container active:bg-error/10">
+            <button
+              onClick={async () => {
+                await fetch("/api/auth/logout", { method: "POST" })
+                router.push("/login")
+              }}
+              className="w-full rounded-xl border-2 border-error px-6 py-3 font-label text-sm font-semibold text-error transition-colors hover:bg-error-container active:bg-error/10"
+            >
               Cerrar Sesión
             </button>
           </div>

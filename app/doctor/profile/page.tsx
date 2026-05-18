@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { TopAppBar } from "@/components/top-app-bar"
 import { BottomNavBar } from "@/components/bottom-nav-bar"
 
@@ -293,7 +293,13 @@ export default function DoctorProfile() {
               </div>
             </section>
 
-            <button className="w-full py-3 rounded-2xl border border-error text-error text-sm font-semibold hover:bg-error-container transition-colors">
+            <button
+              onClick={async () => {
+                await fetch("/api/auth/logout", { method: "POST" })
+                window.location.href = "/login"
+              }}
+              className="w-full py-3 rounded-2xl border border-error text-error text-sm font-semibold hover:bg-error-container transition-colors"
+            >
               Cerrar Sesión
             </button>
           </div>

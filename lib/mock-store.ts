@@ -152,40 +152,36 @@ const adminTokenTx: AdminTokenTransaction[] = [
 
 // --- Store with mutable state ---
 
+const CREDENTIALS: Record<string, { id: string; name: string; role: User["role"]; token: string }> = {
+  "admin@admin.com": { id: "u-admin-1", name: "Admin Portal", role: "admin", token: "mock-token-admin-123" },
+  "doctor@test.com": { id: "u-doctor-1", name: "Dr. Aris Chen", role: "doctor", token: "mock-token-doctor-123" },
+  "patient@test.com": { id: "u-patient-1", name: "Sarah Mitchell", role: "patient", token: "mock-token-patient-123" },
+}
+
+const PASSWORDS: Record<string, string> = {
+  "admin@admin.com": "admin",
+  "doctor@test.com": "123",
+  "patient@test.com": "123",
+}
+
 function createStore() {
   let currentUser: User = {
     id: "u-patient-1",
-    email: "s.mitchell@sanctuary.health",
+    email: "patient@test.com",
     name: "Sarah Mitchell",
     role: "patient",
     avatar: "",
     token: "mock-token-patient-123",
   }
 
-  const currentDoctor: User = {
-    id: "u-doctor-1",
-    email: "dr.aris@sanctuary.health",
-    name: "Dr. Aris Chen",
-    role: "doctor",
-    avatar: "",
-    token: "mock-token-doctor-123",
-  }
-
-  const currentAdmin: User = {
-    id: "u-admin-1",
-    email: "admin@sanctuary.health",
-    name: "Admin Portal",
-    role: "admin",
-    avatar: "",
-    token: "mock-token-admin-123",
-  }
-
   return {
     // Auth
-    login(email: string, _password: string): User | null {
-      if (email.includes("doctor")) return { ...currentDoctor, email }
-      if (email.includes("admin")) return { ...currentAdmin, email }
-      return { ...currentUser, email }
+    login(email: string, password: string): User | null {
+      const creds = CREDENTIALS[email]
+      if (!creds || PASSWORDS[email] !== password) return null
+      const user: User = { ...creds, email, avatar: "" }
+      currentUser = user
+      return user
     },
     signup(_name: string, email: string, _password: string): User {
       currentUser = { ...currentUser, email, name: _name }
@@ -194,8 +190,14 @@ function createStore() {
 
     // Users
     getPatientUser: () => currentUser,
-    getDoctorUser: () => currentDoctor,
-    getAdminUser: () => currentAdmin,
+    getDoctorUser: () => {
+      const c = CREDENTIALS["doctor@test.com"]
+      return { ...c, email: "doctor@test.com", avatar: "" } as User
+    },
+    getAdminUser: () => {
+      const c = CREDENTIALS["admin@admin.com"]
+      return { ...c, email: "admin@admin.com", avatar: "" } as User
+    },
 
     // Patient
     getPatientProfile: () => patients[0],

@@ -1,5 +1,5 @@
-import { NextRequest } from "next/server"
-import { ok, err, type ApiResponse, type AuthResponse } from "@/lib/api-types"
+import { NextRequest, NextResponse } from "next/server"
+import { ok, err, type AuthResponse } from "@/lib/api-types"
 import { store } from "@/lib/mock-store"
 
 export async function POST(request: NextRequest) {
@@ -7,13 +7,23 @@ export async function POST(request: NextRequest) {
   const { email, password } = body
 
   if (!email || !password) {
-    return Response.json(err("Email y contraseña son requeridos"), { status: 400 })
+    return NextResponse.json(err("Email y contraseña son requeridos"), { status: 400 })
   }
 
   const user = store.login(email, password)
   if (!user) {
-    return Response.json(err("Credenciales inválidas"), { status: 401 })
+    return NextResponse.json(err("Credenciales inválidas"), { status: 401 })
   }
 
-  return Response.json(ok<AuthResponse>({ user }))
+  const res = NextResponse.json(ok<AuthResponse>({ user }))
+
+  res.cookies.set("session", JSON.stringify({ userId: user.id, role: user.role, name: user.name }), {
+    httpOnly: false,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24,
+  })
+
+  return res
 }
