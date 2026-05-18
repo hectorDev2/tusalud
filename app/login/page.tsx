@@ -1,16 +1,47 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { TopAppBar } from "@/components/top-app-bar"
 
 type LoginMethod = "password" | "magic-link"
 
 export default function LoginPage() {
+  const router = useRouter()
   const [method, setMethod] = useState<LoginMethod>("password")
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setLoading(true)
+    setError("")
+
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    })
+
+    const json = await res.json()
+
+    if (!json.ok) {
+      setError(json.error || "Error al iniciar sesión")
+      setLoading(false)
+      return
+    }
+
+    localStorage.setItem("user", JSON.stringify(json.data.user))
+
+    const role = json.data.user.role
+    if (role === "doctor") router.push("/doctor")
+    else if (role === "admin") router.push("/admin")
+    else router.push("/patient")
+  }
 
   return (
     <div className="relative min-h-screen bg-background">
@@ -63,9 +94,15 @@ export default function LoginPage() {
             </div>
 
             {/* Form */}
+            {error && (
+              <div className="mt-6 rounded-xl bg-error-container/50 px-4 py-3 text-sm font-medium text-error">
+                {error}
+              </div>
+            )}
+
             <form
-              onSubmit={(e) => e.preventDefault()}
-              className="mt-8 space-y-6"
+              onSubmit={handleSubmit}
+              className="mt-6 space-y-6"
             >
               <div>
                 <label
@@ -125,9 +162,10 @@ export default function LoginPage() {
 
               <button
                 type="submit"
-                className="primary-gradient w-full rounded-2xl py-4 font-semibold text-on-primary shadow-xl shadow-primary/15 hover:scale-[1.01] active:scale-[0.99] transition-all text-base"
+                disabled={loading}
+                className="primary-gradient w-full rounded-2xl py-4 font-semibold text-on-primary shadow-xl shadow-primary/15 hover:scale-[1.01] active:scale-[0.99] transition-all text-base disabled:opacity-60 disabled:hover:scale-100"
               >
-                Continuar
+                {loading ? "Ingresando..." : "Continuar"}
               </button>
             </form>
 

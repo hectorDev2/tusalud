@@ -7,13 +7,17 @@ export default function VerifyPage() {
   const [resending, setResending] = useState(false)
   const [resent, setResent] = useState(false)
 
-  const handleResend = () => {
+  const handleResend = async () => {
     setResending(true)
-    setTimeout(() => {
-      setResending(false)
-      setResent(true)
-      setTimeout(() => setResent(false), 4000)
-    }, 1200)
+    const email = JSON.parse(localStorage.getItem("user") || "{}").email || ""
+    await fetch("/api/auth/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    })
+    setResending(false)
+    setResent(true)
+    setTimeout(() => setResent(false), 4000)
   }
 
   return (
@@ -59,13 +63,13 @@ export default function VerifyPage() {
 
             <div className="mt-8 space-y-4">
               <Link
-                href="#"
+                href="/patient"
                 className="primary-gradient flex items-center justify-center gap-2 w-full rounded-2xl py-4 font-semibold text-on-primary shadow-xl shadow-primary/15 hover:scale-[1.01] active:scale-[0.99] transition-all text-base"
               >
                 <span className="material-symbols-outlined text-lg">
-                  open_in_new
+                  check_circle
                 </span>
-                Abrir correo electrónico
+                Ya verifiqué mi email — Ir al Dashboard
               </Link>
 
               <div className="text-center">

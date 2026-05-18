@@ -1,14 +1,42 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 
 export default function SignupPage() {
+  const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [fullName, setFullName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!acceptedTerms) return
+    setLoading(true)
+    setError("")
+
+    const res = await fetch("/api/auth/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: fullName, email, password }),
+    })
+
+    const json = await res.json()
+
+    if (!json.ok) {
+      setError(json.error || "Error al crear la cuenta")
+      setLoading(false)
+      return
+    }
+
+    localStorage.setItem("user", JSON.stringify(json.data.user))
+    router.push("/verify")
+  }
 
   return (
     <div className="relative min-h-screen bg-background overflow-hidden">
@@ -40,9 +68,15 @@ export default function SignupPage() {
               </p>
             </div>
 
+            {error && (
+              <div className="rounded-xl bg-error-container/50 px-4 py-3 text-sm font-medium text-error">
+                {error}
+              </div>
+            )}
+
             <form
-              onSubmit={(e) => e.preventDefault()}
-              className="mt-8 space-y-5"
+              onSubmit={handleSubmit}
+              className="mt-6 space-y-6"
             >
               {/* Full Name */}
               <div>
@@ -141,9 +175,9 @@ export default function SignupPage() {
               <button
                 type="submit"
                 className="primary-gradient w-full rounded-2xl py-4 font-semibold text-on-primary shadow-xl shadow-primary/15 hover:scale-[1.01] active:scale-[0.99] transition-all text-base disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                disabled={!acceptedTerms}
+                disabled={!acceptedTerms || loading}
               >
-                Crear cuenta
+                {loading ? "Creando cuenta..." : "Crear cuenta"}
               </button>
             </form>
 
