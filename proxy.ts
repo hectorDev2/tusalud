@@ -24,6 +24,7 @@ export default async function proxy(req: NextRequest) {
   if (pathname.startsWith("/api/")) return NextResponse.next()
   if (pathname.startsWith("/_next/")) return NextResponse.next()
   if (pathname.startsWith("/favicon")) return NextResponse.next()
+  if (pathname.endsWith(".js") || pathname.endsWith(".json") || pathname.endsWith(".map")) return NextResponse.next()
 
   const requiredRole = getRequiredRole(pathname)
   if (!requiredRole) return NextResponse.next()

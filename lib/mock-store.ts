@@ -30,6 +30,14 @@ export interface Patient {
   medications: string[]
   bloodPressure: string
   heartRate: number
+  bloodType: string
+  height: string
+  weight: string
+  vaccines: { name: string; date: string }[]
+  chronicConditions: string[]
+  surgeries: { name: string; year: string }[]
+  familyHistory: string[]
+  emergencyContact: { name: string; phone: string; relation: string }
 }
 
 export interface Consultation {
@@ -64,13 +72,94 @@ const doctors: Doctor[] = [
 ]
 
 const patients: Patient[] = [
-  { id: "p1", name: "Sarah Mitchell", age: 28, gender: "Femenino", avatar: "", initials: "SM", allergies: ["Penicilina", "Látex"], medications: ["Inhalador de Albuterol (según necesidad)", "Complejo Multivitamínico"], bloodPressure: "118/76", heartRate: 72 },
-  { id: "p2", name: "Marcus Chen", age: 45, gender: "Masculino", avatar: "", initials: "MC", allergies: ["Sulfa"], medications: ["Lisinopril 10mg", "Aspirina 81mg"], bloodPressure: "132/84", heartRate: 68 },
-  { id: "p3", name: "Elena Rodriguez", age: 35, gender: "Femenino", avatar: "", initials: "ER", allergies: [], medications: [], bloodPressure: "120/80", heartRate: 75 },
-  { id: "p4", name: "James Wilson", age: 52, gender: "Masculino", avatar: "", initials: "JW", allergies: ["Ibuprofeno"], medications: ["Atorvastatina 20mg"], bloodPressure: "140/90", heartRate: 80 },
-  { id: "p5", name: "Laura Bennett", age: 29, gender: "Femenino", avatar: "", initials: "LB", allergies: [], medications: ["Anticonceptivos"], bloodPressure: "115/75", heartRate: 70 },
-  { id: "p6", name: "Robert Kim", age: 41, gender: "Masculino", avatar: "", initials: "RK", allergies: [], medications: ["Metformina 500mg"], bloodPressure: "128/82", heartRate: 72 },
-  { id: "p7", name: "Ana Martinez", age: 38, gender: "Femenino", avatar: "", initials: "AM", allergies: ["Aspirina"], medications: [], bloodPressure: "122/78", heartRate: 74 },
+  {
+    id: "p1", name: "Sarah Mitchell", age: 28, gender: "Femenino", avatar: "", initials: "SM",
+    allergies: ["Penicilina", "Látex"],
+    medications: ["Inhalador de Albuterol (según necesidad)", "Complejo Multivitamínico"],
+    bloodPressure: "118/76", heartRate: 72,
+    bloodType: "A+", height: "1.65 m", weight: "62 kg",
+    vaccines: [
+      { name: "COVID-19 (Moderna)", date: "Mar 2024" },
+      { name: "Antigripal", date: "Abr 2024" },
+      { name: "Triple Viral", date: "Feb 2023" },
+      { name: "Hepatitis B", date: "Ene 2022" },
+    ],
+    chronicConditions: ["Asma leve intermitente"],
+    surgeries: [{ name: "Apendicectomía", year: "2018" }],
+    familyHistory: ["Madre: Hipertensión", "Padre: Diabetes tipo 2"],
+    emergencyContact: { name: "Tomás Mitchell", phone: "+54 11 5555-0199", relation: "Hermano" },
+  },
+  {
+    id: "p2", name: "Marcus Chen", age: 45, gender: "Masculino", avatar: "", initials: "MC",
+    allergies: ["Sulfa"],
+    medications: ["Lisinopril 10mg", "Aspirina 81mg"],
+    bloodPressure: "132/84", heartRate: 68,
+    bloodType: "O+", height: "1.78 m", weight: "85 kg",
+    vaccines: [
+      { name: "COVID-19 (Pfizer)", date: "Jun 2024" },
+      { name: "Antigripal", date: "May 2024" },
+    ],
+    chronicConditions: ["Hipertensión arterial", "Hipercolesterolemia"],
+    surgeries: [],
+    familyHistory: ["Madre: Cardiopatía", "Padre: Fallecido por infarto"],
+    emergencyContact: { name: "Lin Chen", phone: "+54 11 5555-0288", relation: "Esposa" },
+  },
+  {
+    id: "p3", name: "Elena Rodriguez", age: 35, gender: "Femenino", avatar: "", initials: "ER",
+    allergies: [], medications: [],
+    bloodPressure: "120/80", heartRate: 75,
+    bloodType: "B+", height: "1.70 m", weight: "68 kg",
+    vaccines: [{ name: "COVID-19 (Sinopharm)", date: "Ene 2024" }, { name: "Antigripal", date: "Abr 2024" }],
+    chronicConditions: [],
+    surgeries: [],
+    familyHistory: [],
+    emergencyContact: { name: "Carlos Rodriguez", phone: "+54 11 5555-0377", relation: "Padre" },
+  },
+  {
+    id: "p4", name: "James Wilson", age: 52, gender: "Masculino", avatar: "", initials: "JW",
+    allergies: ["Ibuprofeno"],
+    medications: ["Atorvastatina 20mg"],
+    bloodPressure: "140/90", heartRate: 80,
+    bloodType: "AB-", height: "1.82 m", weight: "92 kg",
+    vaccines: [{ name: "Antigripal", date: "Mar 2024" }],
+    chronicConditions: ["Hipertensión", "Diabetes tipo 2"],
+    surgeries: [{ name: "Colecistectomía", year: "2020" }],
+    familyHistory: ["Madre: Diabetes", "Padre: Hipertensión"],
+    emergencyContact: { name: "Anna Wilson", phone: "+54 11 5555-0466", relation: "Esposa" },
+  },
+  {
+    id: "p5", name: "Laura Bennett", age: 29, gender: "Femenino", avatar: "", initials: "LB",
+    allergies: [], medications: ["Anticonceptivos"],
+    bloodPressure: "115/75", heartRate: 70,
+    bloodType: "O-", height: "1.63 m", weight: "55 kg",
+    vaccines: [{ name: "COVID-19 (Moderna)", date: "Feb 2024" }, { name: "HPV", date: "2023" }, { name: "Antigripal", date: "May 2024" }],
+    chronicConditions: [],
+    surgeries: [],
+    familyHistory: ["Madre: Cáncer de mama (remisión)"],
+    emergencyContact: { name: "Sophie Bennett", phone: "+54 11 5555-0555", relation: "Hermana" },
+  },
+  {
+    id: "p6", name: "Robert Kim", age: 41, gender: "Masculino", avatar: "", initials: "RK",
+    allergies: [], medications: ["Metformina 500mg"],
+    bloodPressure: "128/82", heartRate: 72,
+    bloodType: "A-", height: "1.75 m", weight: "78 kg",
+    vaccines: [{ name: "COVID-19 (Pfizer)", date: "Ago 2024" }, { name: "Antigripal", date: "Abr 2024" }],
+    chronicConditions: ["Prediabetes"],
+    surgeries: [],
+    familyHistory: ["Padre: Diabetes tipo 2"],
+    emergencyContact: { name: "Yuna Kim", phone: "+54 11 5555-0644", relation: "Esposa" },
+  },
+  {
+    id: "p7", name: "Ana Martinez", age: 38, gender: "Femenino", avatar: "", initials: "AM",
+    allergies: ["Aspirina"], medications: [],
+    bloodPressure: "122/78", heartRate: 74,
+    bloodType: "AB+", height: "1.68 m", weight: "60 kg",
+    vaccines: [{ name: "COVID-19 (Moderna)", date: "Mar 2024" }, { name: "Antigripal", date: "Abr 2024" }, { name: "Hepatitis B", date: "2022" }],
+    chronicConditions: ["Migraña crónica"],
+    surgeries: [{ name: "Cirugía de tobillo", year: "2021" }],
+    familyHistory: ["Madre: Migraña"],
+    emergencyContact: { name: "Pedro Martinez", phone: "+54 11 5555-0733", relation: "Esposo" },
+  },
 ]
 
 let consultations: Consultation[] = [
