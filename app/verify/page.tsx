@@ -53,10 +53,10 @@ export default function VerifyPage() {
 
             <div className="mt-8 text-center">
               <h1 className="font-headline text-2xl font-bold md:text-3xl">
-                Revisá tu correo
+                Revisa tu correo
               </h1>
               <p className="mt-3 leading-relaxed text-on-surface-variant">
-                Te enviamos un link seguro a tu correo electrónico. Hacé
+                Te enviamos un link seguro a tu correo electrónico. Haz
                 clic en el link para verificar tu cuenta y continuar a tu santuario.
               </p>
             </div>
@@ -75,7 +75,7 @@ export default function VerifyPage() {
               <div className="text-center">
                 {resent ? (
                   <p className="text-sm text-tertiary font-medium">
-                    ¡Link reenviado! Revisá tu bandeja de entrada.
+                    ¡Link reenviado! Revisa tu bandeja de entrada.
                   </p>
                 ) : (
                   <button

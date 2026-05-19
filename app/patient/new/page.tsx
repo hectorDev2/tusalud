@@ -37,7 +37,7 @@ export default function NewConsultation() {
             Motivo de la consulta
           </label>
           <textarea
-            placeholder="Describí tus síntomas, inquietudes o el motivo de la consulta..."
+            placeholder="Describe tus síntomas, inquietudes o el motivo de la consulta..."
             className="w-full bg-transparent border-b-2 border-outline-variant pb-3 pt-1 font-body text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:border-primary transition-colors resize-none"
             rows={3}
           />

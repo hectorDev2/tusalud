@@ -396,7 +396,7 @@ export default function ConsultationPage({
               </label>
               <input
                 type="text"
-                placeholder="Ingresá el diagnóstico..."
+                placeholder="Ingresa el diagnóstico..."
                 className="w-full bg-surface-container-low rounded-xl px-4 py-3 text-sm text-on-surface outline-none focus:ring-2 focus:ring-primary/30 placeholder:text-on-surface-variant/50"
               />
             </div>
@@ -407,7 +407,7 @@ export default function ConsultationPage({
               </label>
               <textarea
                 rows={4}
-                placeholder="Describí las acciones recetadas o derivá a un especialista..."
+                placeholder="Describe las acciones recetadas o deriva a un especialista..."
                 className="w-full bg-surface-container-low rounded-xl px-4 py-3 text-sm text-on-surface outline-none focus:ring-2 focus:ring-primary/30 placeholder:text-on-surface-variant/50 resize-none"
               />
             </div>

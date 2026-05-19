@@ -35,7 +35,7 @@ const threads: Thread[] = [
   {
     id: "t3",
     name: "Dr. Elena Vance",
-    preview: "Recordatorio: tenés consulta mañana a las 9:00 AM",
+    preview: "Recordatorio: tienes consulta mañana a las 9:00 AM",
     time: "15 Oct",
     unread: false,
     href: "/patient/consultations/c3",
@@ -105,7 +105,7 @@ export default function MessagesPage() {
           </span>
           <input
             type="text"
-            placeholder="Buscá mensajes o doctores..."
+            placeholder="Busca mensajes o doctores..."
             className="flex-1 bg-transparent font-body text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none"
           />
         </div>

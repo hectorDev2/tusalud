@@ -63,10 +63,10 @@ export default function SignupPage() {
           <div className="rounded-3xl bg-surface-container-lowest p-8 shadow-[0_12px_48px_rgba(25,28,30,0.06)] md:p-10">
             <div className="text-center">
               <h1 className="font-headline text-2xl font-bold md:text-3xl">
-                Empezá tu viaje hacia el bienestar.
+                Empieza tu viaje hacia el bienestar.
               </h1>
               <p className="mt-2 text-on-surface-variant">
-                Creá tu cuenta y empezá tu viaje de cuidado hoy mismo.
+                Crea tu cuenta y empezá tu viaje de cuidado hoy mismo.
               </p>
             </div>
 
@@ -130,7 +130,7 @@ export default function SignupPage() {
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Creá una contraseña segura"
+                    placeholder="Crea una contraseña segura"
                     className="block w-full h-14 rounded-t-lg bg-surface-container-low px-4 pr-12 text-base text-on-surface outline-none border-b-2 border-transparent placeholder:text-on-surface-variant/50 focus:border-primary transition-all"
                   />
                   <button
@@ -185,7 +185,7 @@ export default function SignupPage() {
 
             {/* Log in link */}
             <p className="mt-8 text-center text-sm text-on-surface-variant">
-              ¿Ya tenés cuenta?{" "}
+              ¿Ya tienes cuenta?{" "}
               <Link
                 href="/login"
                 className="font-semibold text-primary hover:underline"

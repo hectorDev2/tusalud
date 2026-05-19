@@ -130,7 +130,7 @@ export function NewConsultationModal({ open, onClose }: Props) {
                   ¿Cuál es tu motivo de consulta?
                 </h3>
                 <p className="font-body text-sm text-on-surface-variant mt-1">
-                  Describí tus síntomas o el motivo por el que querés consultar.
+                  Describe tus síntomas o el motivo por el que quieres consultar.
                 </p>
               </div>
               <textarea
@@ -154,7 +154,7 @@ export function NewConsultationModal({ open, onClose }: Props) {
                   ¿Qué especialidad necesitás?
                 </h3>
                 <p className="font-body text-sm text-on-surface-variant mt-1">
-                  Seleccioná el tipo de médico que mejor se ajuste a tu consulta.
+                  Selecciona el tipo de médico que mejor se ajuste a tu consulta.
                 </p>
               </div>
               <div className="grid grid-cols-1 gap-3">
@@ -209,10 +209,10 @@ export function NewConsultationModal({ open, onClose }: Props) {
             <div className="space-y-6">
               <div>
                 <h3 className="font-headline text-lg font-semibold text-on-surface">
-                  Revisá tu consulta
+                  Revisa tu consulta
                 </h3>
                 <p className="font-body text-sm text-on-surface-variant mt-1">
-                  Confirmá los datos antes de enviar.
+                  Confirma los datos antes de enviar.
                 </p>
               </div>
 

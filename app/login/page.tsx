@@ -146,7 +146,7 @@ export default function LoginPage() {
                       type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Ingresá tu contraseña"
+                      placeholder="Ingresa tu contraseña"
                       className="block w-full h-14 border-b border-outline-variant bg-transparent px-0 pr-10 text-base text-on-surface outline-none placeholder:text-on-surface-variant/50 focus:border-primary transition-colors"
                     />
                     <button
@@ -217,12 +217,12 @@ export default function LoginPage() {
 
             {/* Sign up link */}
               <p className="mt-8 text-center text-sm text-on-surface-variant">
-              ¿No tenés cuenta?{" "}
+              ¿No tienes cuenta?{" "}
               <Link
                 href="/signup"
                 className="font-semibold text-primary hover:underline"
               >
-                Registrate
+                Regístrate
               </Link>
             </p>
           </div>

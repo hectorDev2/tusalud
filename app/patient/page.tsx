@@ -112,7 +112,7 @@ export default function PatientDashboard() {
             <div className="bg-surface-container-low rounded-2xl p-8 text-center">
               <span className="material-symbols-outlined text-3xl text-on-surface-variant">search</span>
               <p className="font-body text-sm text-on-surface-variant mt-2">
-                ¿Buscás un especialista? Explorá el directorio
+                ¿Buscas un especialista? Explora el directorio
               </p>
             </div>
           )}

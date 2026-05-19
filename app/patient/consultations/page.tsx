@@ -129,7 +129,7 @@ export default function PatientConsultations() {
           ) : (
             <div className="bg-surface-container-low rounded-2xl p-8 text-center">
               <span className="material-symbols-outlined text-4xl text-on-surface-variant">calendar_month</span>
-              <p className="font-headline text-lg font-semibold text-on-surface mt-3">Todavía no tenés consultas</p>
+              <p className="font-headline text-lg font-semibold text-on-surface mt-3">Todavía no tienes consultas</p>
               <p className="font-body text-sm text-on-surface-variant mt-1">
                 Programá tu primera consulta con un especialista.
               </p>

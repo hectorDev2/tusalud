@@ -2,7 +2,7 @@ import Link from "next/link"
 
 const navLinks = [
   { href: "/login", label: "Iniciar sesión" },
-  { href: "/signup", label: "Registrate gratis", primary: true },
+  { href: "/signup", label: "Regístrate gratis", primary: true },
 ]
 
 const platformLinks = [
@@ -261,7 +261,7 @@ export default function LandingPage() {
                 href="/signup"
                 className="primary-gradient text-on-primary px-10 py-4 rounded-2xl font-semibold shadow-xl shadow-primary/15 hover:scale-[1.02] active:scale-[0.98] transition-all text-base"
               >
-                Empezá gratis
+                Empieza gratis
               </Link>
               <Link
                 href="/login"
