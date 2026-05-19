@@ -141,7 +141,7 @@ export default function AdminDashboard() {
                     <p className="font-semibold text-on-surface group-hover:text-primary transition-colors">
                       Gestión de Usuarios
                     </p>
-                    <p className="text-sm text-on-surface-variant">Gestioná pacientes y personal</p>
+                    <p className="text-sm text-on-surface-variant">Gestiona pacientes y personal</p>
                   </div>
                 </div>
                 <span className="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">

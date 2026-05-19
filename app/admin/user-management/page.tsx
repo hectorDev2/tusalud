@@ -195,7 +195,7 @@ export default function UserManagementPage() {
             Gestión de Usuarios
           </h1>
           <p className="text-on-surface-variant mt-1">
-            Administrá roles, permisos y acceso de todos los usuarios de la plataforma.
+            Administra roles, permisos y acceso de todos los usuarios de la plataforma.
           </p>
         </div>
 

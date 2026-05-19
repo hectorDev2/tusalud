@@ -85,7 +85,7 @@ export default function PatientRecordsPage() {
         <div className="pt-8 pb-8">
           <h1 className="text-3xl font-bold font-headline text-on-surface">Registros de Pacientes</h1>
           <p className="text-on-surface-variant mt-1">
-            Visualizá y gestioná los perfiles de pacientes registrados en la plataforma.
+            Visualiza y gestiona los perfiles de pacientes registrados en la plataforma.
           </p>
         </div>
 
@@ -96,7 +96,7 @@ export default function PatientRecordsPage() {
           </span>
           <input
             type="text"
-            placeholder="Buscá por nombre, email o documento..."
+            placeholder="Busca por nombre, email o documento..."
             className="w-full h-12 pl-11 pr-4 rounded-2xl bg-surface-container-lowest border border-outline-variant text-on-surface placeholder:text-on-surface-variant/60 font-body text-sm focus:outline-none focus:ring-2 focus:ring-primary-fixed-dim focus:border-primary transition-all shadow-[0_12px_48px_rgba(25,28,30,0.06)]"
           />
         </div>

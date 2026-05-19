@@ -83,7 +83,7 @@ export default function TokenLedger() {
         <div className="pt-8 pb-8">
           <h1 className="text-3xl font-bold font-headline text-on-surface">Libro de Tokens</h1>
           <p className="text-on-surface-variant mt-1">
-            Monitoreá el flujo de tokens de todos los usuarios del sistema.
+            Monitorea el flujo de tokens de todos los usuarios del sistema.
           </p>
         </div>
 

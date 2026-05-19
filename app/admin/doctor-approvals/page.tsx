@@ -72,7 +72,7 @@ export default function DoctorApprovals() {
         <div className="pt-8 pb-8">
           <h1 className="text-3xl font-bold font-headline text-on-surface">Aprobaciones de Doctores</h1>
           <p className="text-on-surface-variant mt-1">
-            Revisá y verificá las credenciales de los profesionales médicos antes de otorgar acceso al sistema
+            Revisa y verifica las credenciales de los profesionales médicos antes de otorgar acceso al sistema
           </p>
         </div>
 
