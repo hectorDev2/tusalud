@@ -38,7 +38,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen bg-background text-on-surface font-body antialiased">
-        {process.env.NODE_ENV === "development" && <DevNavBar />}
+        <DevNavBar />
         {children}
       </body>
     </html>
