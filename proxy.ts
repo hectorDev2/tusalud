@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { createRouteClient } from "@/lib/supabase"
 
 const roleGroups: Record<string, string[]> = {
   patient: ["/patient"],
@@ -29,19 +30,25 @@ export default async function proxy(req: NextRequest) {
   const requiredRole = getRequiredRole(pathname)
   if (!requiredRole) return NextResponse.next()
 
-  const sessionCookie = req.cookies.get("session")
-  if (!sessionCookie) {
+  const supabase = createRouteClient(req)
+  const { data: { session } } = await supabase.auth.getSession()
+
+  if (!session) {
     return NextResponse.redirect(new URL("/login", req.url))
   }
 
-  try {
-    const session = JSON.parse(sessionCookie.value)
-    if (session.role !== requiredRole) {
-      const dest = session.role === "doctor" ? "/doctor" : session.role === "admin" ? "/admin" : "/patient"
-      return NextResponse.redirect(new URL(dest, req.url))
-    }
-  } catch {
-    return NextResponse.redirect(new URL("/login", req.url))
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", session.user.id)
+    .single()
+
+  if (profile && profile.role !== requiredRole) {
+    const dest =
+      profile.role === "doctor" ? "/doctor"
+      : profile.role === "admin" ? "/admin"
+      : "/patient"
+    return NextResponse.redirect(new URL(dest, req.url))
   }
 
   return NextResponse.next()
