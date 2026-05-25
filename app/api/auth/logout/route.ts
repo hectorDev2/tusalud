@@ -1,8 +1,17 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { ok } from "@/lib/api-types"
+import { createRouteClientWithResponse } from "@/lib/supabase"
 
-export async function POST() {
-  const res = NextResponse.json(ok({ message: "Sesión cerrada" }))
-  res.cookies.set("session", "", { httpOnly: false, path: "/", maxAge: 0 })
-  return res
+export async function POST(request: NextRequest) {
+  const { supabase, response: supabaseResponse } = createRouteClientWithResponse(request)
+
+  await supabase.auth.signOut()
+
+  const response = NextResponse.json(ok({ message: "Sesión cerrada" }))
+
+  for (const { name, value } of supabaseResponse.cookies.getAll()) {
+    response.cookies.set(name, value)
+  }
+
+  return response
 }

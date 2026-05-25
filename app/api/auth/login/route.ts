@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { ok, err, type AuthResponse } from "@/lib/api-types"
-import { store } from "@/lib/mock-store"
+import { createRouteClientWithResponse } from "@/lib/supabase"
 
 export async function POST(request: NextRequest) {
   const body = await request.json()
@@ -10,20 +10,39 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(err("Email y contraseña son requeridos"), { status: 400 })
   }
 
-  const user = store.login(email, password)
-  if (!user) {
+  const { supabase, response: supabaseResponse } = createRouteClientWithResponse(request)
+
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+
+  if (error) {
     return NextResponse.json(err("Credenciales inválidas"), { status: 401 })
   }
 
-  const res = NextResponse.json(ok<AuthResponse>({ user }))
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id, name, role, avatar")
+    .eq("id", data.user.id)
+    .single()
 
-  res.cookies.set("session", JSON.stringify({ userId: user.id, role: user.role, name: user.name }), {
-    httpOnly: false,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24,
-  })
+  if (!profile) {
+    return NextResponse.json(err("Perfil no encontrado"), { status: 404 })
+  }
 
-  return res
+  const user = {
+    id: profile.id,
+    email: data.user.email!,
+    name: profile.name,
+    role: profile.role,
+    avatar: profile.avatar || "",
+    token: data.session.access_token,
+  }
+
+  const response = NextResponse.json(ok<AuthResponse>({ user }))
+
+  // Copy Supabase auth cookies from the intermediate response
+  for (const { name, value } of supabaseResponse.cookies.getAll()) {
+    response.cookies.set(name, value)
+  }
+
+  return response
 }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { ok, err, type AuthResponse } from "@/lib/api-types"
-import { store } from "@/lib/mock-store"
+import { createRouteClientWithResponse } from "@/lib/supabase"
 
 export async function POST(request: NextRequest) {
   const body = await request.json()
@@ -10,16 +10,44 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(err("Todos los campos son requeridos"), { status: 400 })
   }
 
-  const user = store.signup(name, email, password)
-  const res = NextResponse.json(ok<AuthResponse>({ user }))
+  const { supabase, response: supabaseResponse } = createRouteClientWithResponse(request)
 
-  res.cookies.set("session", JSON.stringify({ userId: user.id, role: user.role, name: user.name }), {
-    httpOnly: false,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24,
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { name, role: "patient" },
+    },
   })
 
-  return res
+  if (error) {
+    return NextResponse.json(err(error.message), { status: 400 })
+  }
+
+  if (!data.user) {
+    return NextResponse.json(err("Error al crear usuario"), { status: 500 })
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id, name, role, avatar")
+    .eq("id", data.user.id)
+    .single()
+
+  const user = {
+    id: data.user.id,
+    email: data.user.email!,
+    name: profile?.name || name,
+    role: (profile?.role as "patient" | "doctor" | "admin") || "patient",
+    avatar: profile?.avatar || "",
+    token: data.session?.access_token || "",
+  }
+
+  const response = NextResponse.json(ok<AuthResponse>({ user }))
+
+  for (const { name, value } of supabaseResponse.cookies.getAll()) {
+    response.cookies.set(name, value)
+  }
+
+  return response
 }

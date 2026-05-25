@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server"
-import { ok, type ApiResponse } from "@/lib/api-types"
+import { ok } from "@/lib/api-types"
 
 export async function POST(request: NextRequest) {
   const body = await request.json()
