@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { ThemeToggle } from "./theme-toggle"
 
 interface TopAppBarProps {
   showProfile?: boolean
@@ -13,16 +14,12 @@ const roleLinks: Record<string, { href: string; label: string }[]> = {
   patient: [
     { href: "/patient", label: "Home" },
     { href: "/patient/tokens", label: "Tokens" },
-    { href: "/patient", label: "Consults" },
   ],
   doctor: [
     { href: "/doctor", label: "Dashboard" },
-    { href: "/doctor", label: "Consults" },
+    { href: "/doctor/consultations", label: "Consultas" },
   ],
-  admin: [
-    { href: "/admin", label: "Dashboard" },
-    { href: "/admin/doctor-approvals", label: "Approvals" },
-  ],
+  admin: [],
   public: [],
 }
 
@@ -32,7 +29,7 @@ export function TopAppBar({
   role = "public",
 }: TopAppBarProps) {
   return (
-    <header className="flex justify-between items-center px-6 py-4 w-full fixed top-0 z-50 bg-[#f7f9fb]/85 backdrop-blur-xl">
+    <header className="flex justify-between items-center px-6 py-4 w-full fixed top-0 z-50 bg-[#f7f9fb]/85 dark:bg-[#1a1c1e]/85 backdrop-blur-xl">
       <Link href="/" className="flex items-center gap-3">
         <span className="material-symbols-outlined text-primary">
           medical_services
@@ -41,14 +38,15 @@ export function TopAppBar({
           Sanctuary Health
         </span>
       </Link>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2">
+        <ThemeToggle />
         {role !== "public" && (
-          <nav className="hidden md:flex gap-4 mr-4">
+          <nav className="hidden md:flex gap-2 mr-2">
             {roleLinks[role].map((link) => (
               <Link
                 key={link.label}
                 href={link.href}
-                className="text-sm font-medium text-on-surface-variant hover:text-primary transition-colors"
+                className="text-sm font-medium text-on-surface-variant hover:text-primary transition-colors px-3 py-2 rounded-xl hover:bg-surface-container-low"
               >
                 {link.label}
               </Link>
@@ -56,18 +54,18 @@ export function TopAppBar({
           </nav>
         )}
         {role === "public" && (
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-3">
             <Link
               href="/login"
-              className="text-sm font-medium text-on-surface-variant hover:text-primary transition-colors"
+              className="text-sm font-medium text-on-surface-variant hover:text-primary transition-colors px-3 py-2 rounded-xl hover:bg-surface-container-low"
             >
-              Log In
+              Iniciar sesión
             </Link>
             <Link
               href="/signup"
               className="primary-gradient text-on-primary px-5 py-2.5 rounded-xl font-semibold shadow-lg shadow-primary/10 hover:scale-[1.02] active:scale-[0.98] transition-all text-sm"
             >
-              Join for Free
+              Registrate gratis
             </Link>
           </div>
         )}

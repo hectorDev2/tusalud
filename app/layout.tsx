@@ -30,11 +30,25 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${manrope.variable} ${inter.variable}`}
+      suppressHydrationWarning
     >
       <head>
         <link
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var t = localStorage.getItem('theme');
+                  var m = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  if (t === 'dark' || (!t && m)) document.documentElement.classList.add('dark');
+                } catch(e) {}
+              })();
+            `,
+          }}
         />
       </head>
       <body className="min-h-screen bg-background text-on-surface font-body antialiased">
