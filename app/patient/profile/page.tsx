@@ -1,16 +1,46 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { TopAppBar } from "@/components/top-app-bar"
 import { BottomNavBar } from "@/components/bottom-nav-bar"
-import { store } from "@/lib/mock-store"
+import { useSession } from "@/lib/use-session"
+
+interface PatientData {
+  id: string
+  name: string
+  initials: string
+  age: number
+  gender: string
+  allergies: string[]
+  medications: string[]
+  bloodPressure: string
+  heartRate: number
+  bloodType: string
+  height: string
+  weight: string
+  vaccines: { name: string; date: string }[]
+  chronicConditions: string[]
+  surgeries: { name: string; year: string }[]
+  familyHistory: string[]
+  emergencyContact: { name: string; phone: string; relation: string }
+}
 
 export default function PatientProfilePage() {
   const router = useRouter()
   const pathname = usePathname()
-  const patient = store.getPatientProfile()
-  const user = store.getPatientUser()
+  const { user } = useSession()
+  const [patient, setPatient] = useState<PatientData | null>(null)
+
+  useEffect(() => {
+    fetch("/api/patient/profile")
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.ok && json.data?.profile) {
+          setPatient(json.data.profile)
+        }
+      })
+  }, [])
 
   const navItems = [
     { label: "Inicio", icon: "home", href: "/patient", active: pathname === "/patient" },
@@ -27,6 +57,17 @@ export default function PatientProfilePage() {
   const [recordatorios, setRecordatorios] = useState(true)
   const [language, setLanguage] = useState<"es" | "en">("es")
 
+  if (!patient) {
+    return (
+      <div className="min-h-screen bg-background pb-20">
+        <TopAppBar showProfile role="patient" />
+        <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+          <p className="text-center text-on-surface-variant py-20">Cargando...</p>
+        </main>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-background pb-20">
       <TopAppBar showProfile role="patient" />
@@ -41,7 +82,7 @@ export default function PatientProfilePage() {
               {patient.name}
             </h1>
             <p className="font-body text-sm text-on-surface-variant">
-              {user.email}
+              {user?.email}
             </p>
             <span className="mt-1 inline-block rounded-full bg-surface-container-high px-3 py-1 font-label text-xs text-on-surface-variant">
               Miembro desde Oct 2024
@@ -57,7 +98,7 @@ export default function PatientProfilePage() {
               </h2>
               <div className="space-y-4">
                 <Field label="Nombre" value={patient.name} />
-                <Field label="Email" value={user.email} />
+                <Field label="Email" value={user?.email || ""} />
                 <Field label="Teléfono" value="+54 11 5555-0123" />
                 <Field label="Fecha de Nacimiento" value="15 Mar 1996" />
                 <Field label="Género" value={patient.gender} />

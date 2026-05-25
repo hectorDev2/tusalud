@@ -1,35 +1,23 @@
 "use client"
 
+import { useState, useEffect } from "react"
+import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { TopAppBar } from "@/components/top-app-bar"
 import { BottomNavBar } from "@/components/bottom-nav-bar"
+import { ListSkeleton } from "@/components/skeleton"
 
-const consultations = [
-  {
-    id: "c1",
-    name: "Sarah Mitchell",
-    initials: "SM",
-    reason: "Opresión en el pecho y falta de aire",
-    time: "09:30 AM",
-    online: true,
-  },
-  {
-    id: "c2",
-    name: "Marcus Chen",
-    initials: "MC",
-    reason: "Control de erupción cutánea",
-    time: "10:15 AM",
-    online: false,
-  },
-  {
-    id: "c3",
-    name: "Elena Rodriguez",
-    initials: "ER",
-    reason: "Resultados del chequeo anual",
-    time: "11:00 AM",
-    online: true,
-  },
-]
+interface Consultation {
+  id: string
+  patient: {
+    id: string
+    name: string
+  }
+  reason: string
+  time: string
+  status: string
+  type: string
+}
 
 const pendingRequests = [
   {
@@ -38,8 +26,8 @@ const pendingRequests = [
     badge: "Urgente",
     badgeClass: "bg-error-container text-error",
     buttons: [
-      { label: "Aprobar", variant: "primary" },
-      { label: "Revisar detalles", variant: "outline" },
+      { label: "Aprobar", variant: "primary" as const },
+      { label: "Revisar detalles", variant: "outline" as const },
     ],
   },
   {
@@ -47,12 +35,39 @@ const pendingRequests = [
     title: "Resultados de laboratorio listos",
     badge: "De rutina",
     badgeClass: "bg-surface-container-high text-on-surface-variant",
-    buttons: [{ label: "Abrir laboratorio", variant: "primary" }],
+    buttons: [{ label: "Abrir laboratorio", variant: "primary" as const }],
   },
 ]
 
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2)
+}
+
 export default function DoctorDashboard() {
   const pathname = usePathname()
+  const [consultations, setConsultations] = useState<Consultation[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch("/api/doctor/consultations")
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.ok && json.data?.consultations) {
+          setConsultations(json.data.consultations)
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  const todayConsultations = consultations.filter(
+    (c) => c.status === "in_progress" || c.status === "pending"
+  )
 
   return (
     <div className="min-h-screen bg-background pb-32">
@@ -64,7 +79,9 @@ export default function DoctorDashboard() {
             Bienvenido, Dr. Aris
           </h1>
           <p className="text-on-surface-variant text-sm mt-1">
-            ¿Listo para tu turno matutino?
+            {todayConsultations.length > 0
+              ? `Tenés ${todayConsultations.length} consulta${todayConsultations.length > 1 ? "s" : ""} pendiente${todayConsultations.length > 1 ? "s" : ""}`
+              : "¿Listo para tu turno matutino?"}
           </p>
         </div>
 
@@ -93,7 +110,7 @@ export default function DoctorDashboard() {
               </span>
             </div>
             <p className="text-3xl font-bold font-headline text-on-surface tracking-tight">
-              24
+              {loading ? "-" : todayConsultations.length}
             </p>
             <p className="text-xs text-on-surface-variant mt-1">
               Consultas hoy
@@ -119,55 +136,71 @@ export default function DoctorDashboard() {
         </div>
 
         <section className="mb-8">
-          <h2 className="text-lg font-bold font-headline text-on-surface mb-4">
-            Consultas asignadas
-          </h2>
-          <div className="space-y-3">
-            {consultations.map((c, i) => (
-              <div
-                key={c.id}
-                className="bg-white rounded-2xl p-4 shadow-[0_12px_48px_rgba(25,28,30,0.06)] flex items-center justify-between"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <div className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-sm font-bold text-on-surface-variant">
-                      {c.initials}
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold font-headline text-on-surface">
+              Consultas asignadas
+            </h2>
+            <Link
+              href="/doctor/consultations"
+              className="text-sm font-medium text-primary hover:underline"
+            >
+              Ver todas
+            </Link>
+          </div>
+
+          {loading ? (
+            <ListSkeleton count={3} />
+          ) : todayConsultations.length > 0 ? (
+            <div className="space-y-3">
+              {todayConsultations.map((c, i) => (
+                <Link
+                  key={c.id}
+                  href={`/doctor/consultations/${c.id}`}
+                  className="bg-white rounded-2xl p-4 shadow-[0_12px_48px_rgba(25,28,30,0.06)] flex items-center justify-between group hover:shadow-md transition-shadow"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <div className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-sm font-bold text-on-surface-variant">
+                        {getInitials(c.patient?.name || "")}
+                      </div>
+                      {i === 0 && (
+                        <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-tertiary border-2 border-white" />
+                      )}
                     </div>
-                    {c.online && (
-                      <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-tertiary border-2 border-white" />
+                    <div>
+                      <p className="text-sm font-semibold text-on-surface group-hover:text-primary transition-colors">
+                        {c.patient?.name || "Paciente"}
+                      </p>
+                      <p className="text-xs text-on-surface-variant">
+                        {c.reason}
+                      </p>
+                      <p className="text-[10px] text-on-surface-variant/70 mt-0.5">
+                        {c.time}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-1.5">
+                    {i === 0 && (
+                      <span className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-white">
+                        <span className="material-symbols-outlined text-[18px]">
+                          videocam
+                        </span>
+                      </span>
                     )}
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-on-surface">
-                      {c.name}
-                    </p>
-                    <p className="text-xs text-on-surface-variant">
-                      {c.reason}
-                    </p>
-                    <p className="text-[10px] text-on-surface-variant/70 mt-0.5">
-                      {c.time}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-1.5">
-                  {i === 0 && (
-                    <button className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-transform">
-                      <span className="material-symbols-outlined text-[18px]">
-                        videocam
-                      </span>
-                    </button>
-                  )}
-                  {i === 1 && (
-                    <button className="w-9 h-9 rounded-xl border border-outline-variant flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors">
-                      <span className="material-symbols-outlined text-[18px]">
-                        description
-                      </span>
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 bg-surface-container-lowest rounded-2xl">
+              <span className="material-symbols-outlined text-4xl text-on-surface-variant/30">
+                event_busy
+              </span>
+              <p className="mt-3 text-sm text-on-surface-variant">
+                No tenés consultas asignadas hoy
+              </p>
+            </div>
+          )}
         </section>
 
         <section>
@@ -218,8 +251,8 @@ export default function DoctorDashboard() {
         items={[
           { label: "Inicio", icon: "home", href: "/doctor", active: pathname === "/doctor" },
           { label: "Consultas", icon: "group", href: "/doctor/consultations", active: false },
-          { label: "Agenda", icon: "calendar_month", href: "/doctor", active: false },
-          { label: "Perfil", icon: "person", href: "/doctor", active: false },
+          { label: "Agenda", icon: "calendar_month", href: "/doctor/agenda", active: false },
+          { label: "Perfil", icon: "person", href: "/doctor/profile", active: false },
         ]}
       />
     </div>
