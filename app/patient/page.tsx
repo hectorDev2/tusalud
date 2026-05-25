@@ -1,18 +1,19 @@
 "use client"
 
-import { useState } from "react"
-import { usePathname } from "next/navigation"
+import { useState, useEffect } from "react"
+import { usePathname, useRouter } from "next/navigation"
 import { TopAppBar } from "@/components/top-app-bar"
 import { BottomNavBar } from "@/components/bottom-nav-bar"
 import { NewConsultationModal } from "@/components/new-consultation-modal"
-import { consultations } from "@/lib/mock-data"
+import { ListSkeleton } from "@/components/skeleton"
 
-function getInitials(name: string): string {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .slice(0, 2)
+interface Consultation {
+  id: string
+  doctor: { name: string; specialty: string }
+  type: string
+  status: string
+  date: string
+  time: string
 }
 
 const avatarColors = [
@@ -22,9 +23,35 @@ const avatarColors = [
   "bg-error-container text-error",
 ]
 
+function getInitials(name: string): string {
+  return name.split(" ").map((n) => n[0]).join("").slice(0, 2)
+}
+
+function statusLabel(s: string): string {
+  const map: Record<string, string> = { completed: "completada", in_progress: "en curso", pending: "pendiente" }
+  return map[s] || s
+}
+
 export default function PatientDashboard() {
   const pathname = usePathname()
+  const router = useRouter()
   const [showModal, setShowModal] = useState(false)
+  const [consultations, setConsultations] = useState<Consultation[]>([])
+  const [tokenBalance, setTokenBalance] = useState(0)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/patient/consultations").then((r) => r.json()),
+      fetch("/api/patient/tokens").then((r) => r.json()),
+    ])
+      .then(([consJson, tokJson]) => {
+        if (consJson.ok) setConsultations(consJson.data?.consultations || [])
+        if (tokJson.ok) setTokenBalance(tokJson.data?.balance || 0)
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
 
   const navItems = [
     { label: "Inicio", icon: "home", href: "/patient", active: pathname === "/patient" },
@@ -33,6 +60,8 @@ export default function PatientDashboard() {
     { label: "Cuenta", icon: "account_circle", href: "/patient/tokens", active: pathname === "/patient/tokens" },
   ]
 
+  const recentConsults = consultations.slice(0, 3)
+
   return (
     <div className="min-h-screen bg-background pb-28">
       <TopAppBar showProfile role="patient" />
@@ -40,7 +69,9 @@ export default function PatientDashboard() {
         {/* Token Balance Hero */}
         <section className="primary-gradient rounded-3xl p-6 text-white shadow-[0_12px_48px_rgba(0,100,124,0.2)]">
           <p className="font-body text-sm text-white/80">Créditos disponibles</p>
-          <h2 className="font-headline text-4xl font-bold tracking-tight mt-1">3 Tokens</h2>
+          <h2 className="font-headline text-4xl font-bold tracking-tight mt-1">
+            {loading ? "..." : `${tokenBalance} Tokens`}
+          </h2>
           <button
             onClick={() => setShowModal(true)}
             className="mt-4 bg-white/20 backdrop-blur-md text-white font-semibold font-label text-sm px-5 py-2.5 rounded-xl hover:bg-white/30 active:scale-[0.97] transition-all"
@@ -74,31 +105,32 @@ export default function PatientDashboard() {
         <section>
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-headline text-lg font-semibold text-on-surface">Consultas recientes</h3>
-            <button className="font-label text-xs font-semibold text-primary">Ver todo</button>
+            <button onClick={() => router.push("/patient/consultations")} className="font-label text-xs font-semibold text-primary">Ver todo</button>
           </div>
-          {consultations.length > 0 ? (
+          {loading ? (
+            <ListSkeleton count={2} />
+          ) : recentConsults.length > 0 ? (
             <div className="space-y-2">
-              {consultations.map((c, i) => (
+              {recentConsults.map((c, i) => (
                 <div
                   key={c.id}
-                  className="bg-white rounded-2xl p-4 flex items-center gap-3 shadow-[0_4px_16px_rgba(25,28,30,0.04)]"
+                  onClick={() => router.push(`/patient/consultations/${c.id}`)}
+                  className="bg-white rounded-2xl p-4 flex items-center gap-3 shadow-[0_4px_16px_rgba(25,28,30,0.04)] cursor-pointer hover:bg-surface-container-low transition-colors"
                 >
-                  <div
-                    className={`w-12 h-12 rounded-full flex items-center justify-center font-label font-bold text-sm flex-shrink-0 ${avatarColors[i % avatarColors.length]}`}
-                  >
-                    {getInitials(c.doctor?.name ?? "")}
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center font-label font-bold text-sm flex-shrink-0 ${avatarColors[i % avatarColors.length]}`}>
+                    {getInitials(c.doctor?.name || "")}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-label text-sm font-semibold text-on-surface truncate">
-                      {c.doctor?.name}
+                      {c.doctor?.name || "Doctor"}
                     </p>
                     <p className="font-body text-xs text-on-surface-variant mt-0.5">
-                      {c.doctor?.specialty}
+                      {c.doctor?.specialty || c.type}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="font-body text-[11px] text-on-surface-variant">{c.date}</span>
+                      <span className="font-body text-[11px] text-on-surface-variant">{c.date} {c.time}</span>
                       <span className="bg-secondary-container text-on-secondary-container font-label text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                        {c.status}
+                        {statusLabel(c.status)}
                       </span>
                     </div>
                   </div>
@@ -112,7 +144,7 @@ export default function PatientDashboard() {
             <div className="bg-surface-container-low rounded-2xl p-8 text-center">
               <span className="material-symbols-outlined text-3xl text-on-surface-variant">search</span>
               <p className="font-body text-sm text-on-surface-variant mt-2">
-                ¿Buscas un especialista? Explora el directorio
+                Todavía no tenés consultas. Tocá "Nueva consulta" para empezar.
               </p>
             </div>
           )}

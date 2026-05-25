@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { AdminLayout } from "@/components/admin-layout"
+import { ListSkeleton } from "@/components/skeleton"
 
 const sidebarItems = [
   { label: "Panel", icon: "dashboard", href: "/admin" },
@@ -33,16 +34,6 @@ interface User {
   status: Status
 }
 
-const initialUsers: User[] = [
-  { id: "1", initials: "SM", avatarBg: "bg-tertiary-fixed/30", avatarText: "text-tertiary", name: "Sarah Mitchell", email: "s.mitchell@email.com", role: "Paciente", status: "Activo" },
-  { id: "2", initials: "AT", avatarBg: "bg-primary-fixed/30", avatarText: "text-primary", name: "Dr. Aris Thorne", email: "thornea@sanctuary.health", role: "Doctor", status: "Activo" },
-  { id: "3", initials: "SC", avatarBg: "bg-primary-fixed/30", avatarText: "text-primary", name: "Dr. Sarah Chen", email: "sarah.chen@neuro.com", role: "Doctor", status: "Activo" },
-  { id: "4", initials: "AP", avatarBg: "bg-secondary-container", avatarText: "text-secondary", name: "Admin Portal", email: "admin@sanctuary.health", role: "Administrador", status: "Activo" },
-  { id: "5", initials: "MC", avatarBg: "bg-tertiary-fixed/30", avatarText: "text-tertiary", name: "Marcus Chen", email: "m.chen@email.com", role: "Paciente", status: "Activo" },
-  { id: "6", initials: "JW", avatarBg: "bg-tertiary-fixed/30", avatarText: "text-tertiary", name: "James Wilson", email: "j.wilson@email.com", role: "Paciente", status: "Suspendido" },
-  { id: "7", initials: "EV", avatarBg: "bg-primary-fixed/30", avatarText: "text-primary", name: "Dr. Elena Vance", email: "vance.e@neurowell.com", role: "Doctor", status: "Pendiente" },
-]
-
 const filterTabs: FilterTab[] = ["Todos", "Pacientes", "Doctores", "Administradores"]
 
 const roleBadgeColors: Record<Role, { bg: string; text: string }> = {
@@ -57,22 +48,49 @@ const statusColors: Record<Status, { bg: string; dot: string; label: string }> =
   Pendiente: { bg: "bg-surface-container-high", dot: "bg-outline", label: "text-on-surface-variant" },
 }
 
-const toggleStatus = (current: Status): Status => {
-  if (current === "Activo") return "Suspendido"
-  if (current === "Suspendido") return "Activo"
-  return current
+const roleMap: Record<string, Role> = {
+  paciente: "Paciente",
+  doctor: "Doctor",
+  administrador: "Administrador",
 }
 
-const statsCards = [
-  { label: "Total", value: "2,450", icon: "group", color: "bg-primary-fixed/30", iconColor: "text-primary" },
-  { label: "Pacientes", value: "1,284", icon: "personal_injury", color: "bg-tertiary-fixed/30", iconColor: "text-tertiary" },
-  { label: "Doctores", value: "48", icon: "stethoscopy", color: "bg-primary-fixed/30", iconColor: "text-primary" },
-  { label: "Admins", value: "6", icon: "admin_panel_settings", color: "bg-secondary-container", iconColor: "text-secondary" },
+function toTitle(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
+const avatarPalette = [
+  "bg-tertiary-fixed/30 text-tertiary",
+  "bg-primary-fixed/30 text-primary",
+  "bg-secondary-container text-secondary",
+  "bg-surface-container-high text-on-surface-variant",
 ]
 
 export default function UserManagementPage() {
   const [activeFilter, setActiveFilter] = useState<FilterTab>("Todos")
-  const [users, setUsers] = useState<User[]>(initialUsers)
+  const [users, setUsers] = useState<User[]>([])
+  const [loading, setLoading] = useState(true)
+  const [toggling, setToggling] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch("/api/admin/users")
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.ok && json.data?.users) {
+          setUsers(json.data.users.map((u: Record<string, string>, i: number) => ({
+            id: u.id,
+            initials: u.name?.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) || "??",
+            avatarBg: avatarPalette[i % avatarPalette.length],
+            avatarText: avatarPalette[i % avatarPalette.length].split(" ")[1],
+            name: u.name,
+            email: u.email,
+            role: roleMap[u.role?.toLowerCase()] || "Paciente",
+            status: toTitle(u.status) as Status,
+          })))
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
 
   const filteredUsers = users.filter((user) => {
     if (activeFilter === "Todos") return true
@@ -82,8 +100,24 @@ export default function UserManagementPage() {
     return true
   })
 
-  const handleToggleStatus = (id: string) => {
-    setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, status: toggleStatus(u.status) } : u)))
+  async function handleToggleStatus(id: string) {
+    setToggling(id)
+    const res = await fetch("/api/admin/users", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: id }),
+    })
+    const json = await res.json()
+    if (json.ok) {
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === id
+            ? { ...u, status: u.status === "Activo" ? "Suspendido" : "Activo" }
+            : u
+        )
+      )
+    }
+    setToggling(null)
   }
 
   const filterCounts: Record<FilterTab, number> = {
@@ -93,6 +127,13 @@ export default function UserManagementPage() {
     Administradores: users.filter((u) => u.role === "Administrador").length,
   }
 
+  const statsCards = [
+    { label: "Total", value: String(users.length), icon: "group", color: "bg-primary-fixed/30", iconColor: "text-primary" },
+    { label: "Pacientes", value: String(filterCounts.Pacientes), icon: "personal_injury", color: "bg-tertiary-fixed/30", iconColor: "text-tertiary" },
+    { label: "Doctores", value: String(filterCounts.Doctores), icon: "stethoscopy", color: "bg-primary-fixed/30", iconColor: "text-primary" },
+    { label: "Admins", value: String(filterCounts.Administradores), icon: "admin_panel_settings", color: "bg-secondary-container", iconColor: "text-secondary" },
+  ]
+
   return (
     <AdminLayout title="Panel de Administración" subtitle="Control de Sistemas de Salud" sidebarItems={sidebarItems} bottomNavItems={bottomNavItems}>
       <div className="pt-6 pb-6">
@@ -100,7 +141,6 @@ export default function UserManagementPage() {
         <p className="text-on-surface-variant mt-1 text-sm md:text-base">Administra roles, permisos y acceso de todos los usuarios de la plataforma.</p>
       </div>
 
-      {/* Filter tabs */}
       <div className="flex flex-wrap gap-2 mb-6">
         {filterTabs.map((tab) => (
           <button key={tab} onClick={() => setActiveFilter(tab)}
@@ -110,13 +150,11 @@ export default function UserManagementPage() {
                 : "bg-surface-container-low text-on-surface-variant hover:bg-surface-container hover:text-on-surface"
             }`}
           >
-            {tab}
-            <span className="ml-1.5 text-xs opacity-70">({filterCounts[tab]})</span>
+            {tab} ({filterCounts[tab]})
           </button>
         ))}
       </div>
 
-      {/* Stats cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         {statsCards.map((stat) => (
           <div key={stat.label} className="bg-surface-container-lowest rounded-2xl p-5 shadow-sm">
@@ -131,126 +169,117 @@ export default function UserManagementPage() {
         ))}
       </div>
 
-      {/* Table + Mobile cards */}
-      <div className="bg-surface-container-lowest rounded-3xl shadow-sm overflow-hidden">
-        {/* Desktop */}
-        <div className="hidden md:block">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[600px]">
-              <thead>
-                <tr className="border-b border-surface-container">
-                  <th className="text-left px-6 py-4 text-xs font-bold font-label uppercase tracking-widest text-on-surface-variant">Usuario</th>
-                  <th className="text-left px-6 py-4 text-xs font-bold font-label uppercase tracking-widest text-on-surface-variant">Email</th>
-                  <th className="text-left px-6 py-4 text-xs font-bold font-label uppercase tracking-widest text-on-surface-variant">Rol</th>
-                  <th className="text-left px-6 py-4 text-xs font-bold font-label uppercase tracking-widest text-on-surface-variant">Estado</th>
-                  <th className="text-right px-6 py-4 text-xs font-bold font-label uppercase tracking-widest text-on-surface-variant">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredUsers.map((user) => {
-                  const badge = roleBadgeColors[user.role]
-                  const statusStyle = statusColors[user.status]
-                  return (
-                    <tr key={user.id} className="border-b border-surface-container-low hover:bg-surface-container-low/50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-xl ${user.avatarBg} flex items-center justify-center font-headline font-bold text-sm ${user.avatarText}`}>{user.initials}</div>
-                          <span className="font-semibold text-on-surface text-sm">{user.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-on-surface-variant">{user.email}</td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-block px-3 py-1 rounded-lg text-xs font-semibold ${badge.bg} ${badge.text}`}>{user.role}</span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-semibold ${statusStyle.bg}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dot}`} />
-                          <span className={statusStyle.label}>{user.status}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center justify-end gap-2">
-                          <button className="p-2 rounded-xl hover:bg-surface-container-low transition-colors text-on-surface-variant hover:text-primary" title="Editar permisos">
-                            <span className="material-symbols-outlined text-lg">manage_accounts</span>
-                          </button>
-                          {user.status !== "Pendiente" && (
-                            <button onClick={() => handleToggleStatus(user.id)}
-                              className={`p-2 rounded-xl transition-colors ${
-                                user.status === "Activo"
-                                  ? "hover:bg-error-container text-on-surface-variant hover:text-error"
-                                  : "hover:bg-tertiary-fixed/30 text-on-surface-variant hover:text-tertiary"
-                              }`}
-                              title={user.status === "Activo" ? "Suspender" : "Activar"}
-                            >
-                              <span className="material-symbols-outlined text-lg">{user.status === "Activo" ? "block" : "check_circle"}</span>
+      {loading ? (
+        <ListSkeleton count={5} />
+      ) : (
+        <div className="bg-surface-container-lowest rounded-3xl shadow-sm overflow-hidden">
+          <div className="hidden md:block">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[600px]">
+                <thead>
+                  <tr className="border-b border-surface-container">
+                    <th className="text-left px-6 py-4 text-xs font-bold font-label uppercase tracking-widest text-on-surface-variant">Usuario</th>
+                    <th className="text-left px-6 py-4 text-xs font-bold font-label uppercase tracking-widest text-on-surface-variant">Email</th>
+                    <th className="text-left px-6 py-4 text-xs font-bold font-label uppercase tracking-widest text-on-surface-variant">Rol</th>
+                    <th className="text-left px-6 py-4 text-xs font-bold font-label uppercase tracking-widest text-on-surface-variant">Estado</th>
+                    <th className="text-right px-6 py-4 text-xs font-bold font-label uppercase tracking-widest text-on-surface-variant">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredUsers.map((user) => {
+                    const badge = roleBadgeColors[user.role]
+                    const statusStyle = statusColors[user.status]
+                    return (
+                      <tr key={user.id} className="border-b border-surface-container-low hover:bg-surface-container-low/50 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-xl ${user.avatarBg} flex items-center justify-center font-headline font-bold text-sm ${user.avatarText}`}>{user.initials}</div>
+                            <span className="font-semibold text-on-surface text-sm">{user.name}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-on-surface-variant">{user.email}</td>
+                        <td className="px-6 py-4">
+                          <span className={`inline-block px-3 py-1 rounded-lg text-xs font-semibold ${badge.bg} ${badge.text}`}>{user.role}</span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-semibold ${statusStyle.bg}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dot}`} />
+                            <span className={statusStyle.label}>{user.status}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center justify-end gap-2">
+                            <button className="p-2 rounded-xl hover:bg-surface-container-low transition-colors text-on-surface-variant hover:text-primary" title="Editar permisos">
+                              <span className="material-symbols-outlined text-lg">manage_accounts</span>
                             </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+                            {user.status !== "Pendiente" && (
+                              <button onClick={() => handleToggleStatus(user.id)} disabled={toggling === user.id}
+                                className={`p-2 rounded-xl transition-colors disabled:opacity-50 ${
+                                  user.status === "Activo"
+                                    ? "hover:bg-error-container text-on-surface-variant hover:text-error"
+                                    : "hover:bg-tertiary-fixed/30 text-on-surface-variant hover:text-tertiary"
+                                }`}
+                                title={user.status === "Activo" ? "Suspender" : "Activar"}
+                              >
+                                <span className="material-symbols-outlined text-lg">{toggling === user.id ? "hourglass" : user.status === "Activo" ? "block" : "check_circle"}</span>
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
 
-        {/* Mobile */}
-        <div className="md:hidden divide-y divide-surface-container-low">
-          {filteredUsers.map((user) => {
-            const badge = roleBadgeColors[user.role]
-            const statusStyle = statusColors[user.status]
-            return (
-              <div key={user.id} className="p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className={`w-10 h-10 rounded-xl ${user.avatarBg} flex items-center justify-center font-headline font-bold text-sm ${user.avatarText}`}>{user.initials}</div>
-                    <div className="min-w-0">
-                      <p className="font-semibold text-on-surface text-sm truncate">{user.name}</p>
-                      <p className="text-xs text-on-surface-variant truncate">{user.email}</p>
+          <div className="md:hidden divide-y divide-surface-container-low">
+            {filteredUsers.map((user) => {
+              const badge = roleBadgeColors[user.role]
+              const statusStyle = statusColors[user.status]
+              return (
+                <div key={user.id} className="p-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`w-10 h-10 rounded-xl ${user.avatarBg} flex items-center justify-center font-headline font-bold text-sm ${user.avatarText}`}>{user.initials}</div>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-on-surface text-sm truncate">{user.name}</p>
+                        <p className="text-xs text-on-surface-variant truncate">{user.email}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button className="p-2 rounded-xl hover:bg-surface-container-low transition-colors text-on-surface-variant">
+                        <span className="material-symbols-outlined">manage_accounts</span>
+                      </button>
+                      {user.status !== "Pendiente" && (
+                        <button onClick={() => handleToggleStatus(user.id)} disabled={toggling === user.id}
+                          className={`p-2 rounded-xl transition-colors disabled:opacity-50 ${
+                            user.status === "Activo" ? "hover:bg-error-container hover:text-error" : "hover:bg-tertiary-fixed/30 hover:text-tertiary"
+                          } text-on-surface-variant`}
+                        >
+                          <span className="material-symbols-outlined">{toggling === user.id ? "hourglass" : user.status === "Activo" ? "block" : "check_circle"}</span>
+                        </button>
+                      )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button className="p-2 rounded-xl hover:bg-surface-container-low transition-colors text-on-surface-variant" title="Editar permisos">
-                      <span className="material-symbols-outlined">manage_accounts</span>
-                    </button>
-                    {user.status !== "Pendiente" && (
-                      <button onClick={() => handleToggleStatus(user.id)}
-                        className={`p-2 rounded-xl transition-colors ${
-                          user.status === "Activo" ? "hover:bg-error-container hover:text-error" : "hover:bg-tertiary-fixed/30 hover:text-tertiary"
-                        } text-on-surface-variant`}
-                      >
-                        <span className="material-symbols-outlined">{user.status === "Activo" ? "block" : "check_circle"}</span>
-                      </button>
-                    )}
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span className={`inline-block px-3 py-1 rounded-lg text-xs font-semibold ${badge.bg} ${badge.text}`}>{user.role}</span>
+                    <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold ${statusStyle.bg}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dot}`} />
+                      <span className={statusStyle.label}>{user.status}</span>
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 flex-wrap">
-                  <span className={`inline-block px-3 py-1 rounded-lg text-xs font-semibold ${badge.bg} ${badge.text}`}>{user.role}</span>
-                  <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold ${statusStyle.bg}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dot}`} />
-                    <span className={statusStyle.label}>{user.status}</span>
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
+              )
+            })}
+          </div>
 
-        {/* Pagination */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-surface-container">
-          <p className="text-sm text-on-surface-variant">Mostrando <span className="font-semibold text-on-surface">{filteredUsers.length}</span> de <span className="font-semibold text-on-surface">{filterCounts[activeFilter]}</span> usuarios</p>
-          <div className="flex items-center gap-2">
-            <button disabled className="p-2 rounded-xl bg-surface-container-low text-on-surface-variant/50 cursor-not-allowed">
-              <span className="material-symbols-outlined text-lg">chevron_left</span>
-            </button>
-            <span className="w-8 h-8 rounded-xl bg-primary text-on-primary flex items-center justify-center text-xs font-bold">1</span>
-            <button disabled className="p-2 rounded-xl bg-surface-container-low text-on-surface-variant/50 cursor-not-allowed">
-              <span className="material-symbols-outlined text-lg">chevron_right</span>
-            </button>
+          <div className="flex items-center justify-between px-6 py-4 border-t border-surface-container">
+            <p className="text-sm text-on-surface-variant">Mostrando <span className="font-semibold text-on-surface">{filteredUsers.length}</span> de <span className="font-semibold text-on-surface">{filterCounts[activeFilter]}</span> usuarios</p>
           </div>
         </div>
-      </div>
+      )}
     </AdminLayout>
   )
 }

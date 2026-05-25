@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { AdminLayout } from "@/components/admin-layout"
+import { ListSkeleton } from "@/components/skeleton"
 
 const sidebarItems = [
   { label: "Panel", icon: "dashboard", href: "/admin" },
@@ -18,11 +19,14 @@ const bottomNavItems = [
   { label: "Perfil", icon: "person", href: "/admin" },
 ]
 
-const approvals = [
-  { name: "Dr. Aris Thorne", specialty: "Cardiology", email: "thornea@sanctuary.health" },
-  { name: "Dr. Elena Vance", specialty: "Neurology", email: "vance.e@neurowell.com" },
-  { name: "Dr. Julian Marsh", specialty: "Pediatrics", email: "marsh_j@healthline.org" },
-]
+interface Approval {
+  id: string
+  name: string
+  specialty: string
+  email: string
+  avatar: string
+  status: "pending" | "verified"
+}
 
 const avatarColors = [
   "bg-primary-fixed/30 text-primary",
@@ -35,8 +39,40 @@ function getInitials(name: string) {
 }
 
 export default function DoctorApprovals() {
-  const [currentPage, setCurrentPage] = useState(1)
-  const totalPages = 2
+  const [approvals, setApprovals] = useState<Approval[]>([])
+  const [loading, setLoading] = useState(true)
+  const [acting, setActing] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch("/api/admin/approvals")
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.ok) setApprovals(json.data?.approvals || [])
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  async function handleApprove(id: string) {
+    setActing(id)
+    const res = await fetch(`/api/admin/approvals/${id}`, { method: "PATCH" })
+    const json = await res.json()
+    if (json.ok) {
+      setApprovals((prev) => prev.map((a) => (a.id === id ? { ...a, status: "verified" } : a)))
+    }
+    setActing(null)
+  }
+
+  async function handleReject(id: string) {
+    setActing(id)
+    const res = await fetch(`/api/admin/approvals/${id}`, { method: "DELETE" })
+    if (res.ok) {
+      setApprovals((prev) => prev.filter((a) => a.id !== id))
+    }
+    setActing(null)
+  }
+
+  const pending = approvals.filter((a) => a.status === "pending")
 
   return (
     <AdminLayout title="Panel de Administración" subtitle="Control de Sistemas de Salud" sidebarItems={sidebarItems} bottomNavItems={bottomNavItems}>
@@ -47,99 +83,98 @@ export default function DoctorApprovals() {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div className="bg-surface-container-lowest rounded-2xl p-5 shadow-sm">
-          <p className="text-2xl font-bold font-headline text-on-surface">12</p>
+          <p className="text-2xl font-bold font-headline text-on-surface">{pending.length}</p>
           <p className="text-sm text-on-surface-variant">Solicitudes pendientes</p>
         </div>
         <div className="bg-surface-container-lowest rounded-2xl p-5 shadow-sm">
-          <p className="text-2xl font-bold font-headline text-on-surface">48</p>
-          <p className="text-sm text-on-surface-variant">Verificados esta semana</p>
+          <p className="text-2xl font-bold font-headline text-on-surface">{approvals.filter((a) => a.status === "verified").length}</p>
+          <p className="text-sm text-on-surface-variant">Verificados</p>
         </div>
         <div className="bg-surface-container-lowest rounded-2xl p-5 shadow-sm">
-          <p className="text-2xl font-bold font-headline text-on-surface">4.2h</p>
-          <p className="text-sm text-on-surface-variant">Tiempo promedio de revisión</p>
+          <p className="text-2xl font-bold font-headline text-on-surface">{approvals.length}</p>
+          <p className="text-sm text-on-surface-variant">Total de solicitudes</p>
         </div>
       </div>
 
-      {/* Mobile cards */}
-      <div className="space-y-3 md:hidden">
-        {approvals.map((doc) => {
-          const colorIndex = approvals.indexOf(doc) % avatarColors.length
-          return (
-            <div key={doc.email} className="bg-surface-container-lowest rounded-2xl p-5 shadow-sm">
-              <div className="flex items-center gap-3 mb-4">
-                <div className={`w-10 h-10 rounded-xl ${avatarColors[colorIndex]} flex items-center justify-center font-headline font-bold text-sm`}>{getInitials(doc.name)}</div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-on-surface truncate">{doc.name}</p>
-                  <p className="text-sm text-on-surface-variant">{doc.specialty}</p>
+      {loading ? (
+        <ListSkeleton count={3} />
+      ) : pending.length === 0 ? (
+        <div className="text-center py-16 bg-surface-container-lowest rounded-2xl">
+          <span className="material-symbols-outlined text-5xl text-on-surface-variant/30">verified_user</span>
+          <p className="mt-4 text-sm text-on-surface-variant">No hay solicitudes pendientes</p>
+        </div>
+      ) : (
+        <>
+          {/* Mobile cards */}
+          <div className="space-y-3 md:hidden">
+            {pending.map((doc, idx) => (
+              <div key={doc.id} className="bg-surface-container-lowest rounded-2xl p-5 shadow-sm">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className={`w-10 h-10 rounded-xl ${avatarColors[idx % avatarColors.length]} flex items-center justify-center font-headline font-bold text-sm`}>{getInitials(doc.name)}</div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-on-surface truncate">{doc.name}</p>
+                    <p className="text-sm text-on-surface-variant">{doc.specialty}</p>
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-widest bg-primary-fixed/30 text-primary px-2.5 py-1 rounded-lg shrink-0">Pendiente</span>
                 </div>
-                <span className="text-[10px] font-bold uppercase tracking-widest bg-primary-fixed/30 text-primary px-2.5 py-1 rounded-lg shrink-0">Pendiente</span>
+                <div className="flex gap-2">
+                  <button onClick={() => handleApprove(doc.id)} disabled={acting === doc.id}
+                    className="flex-1 px-4 py-2 text-sm font-semibold rounded-xl bg-tertiary text-on-tertiary hover:bg-tertiary/90 transition-colors disabled:opacity-50"
+                  >{acting === doc.id ? "..." : "Aprobar"}</button>
+                  <button onClick={() => handleReject(doc.id)} disabled={acting === doc.id}
+                    className="flex-1 px-4 py-2 text-sm font-semibold rounded-xl bg-error-container text-on-error-container hover:bg-error-container/80 transition-colors disabled:opacity-50"
+                  >{acting === doc.id ? "..." : "Rechazar"}</button>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <button className="flex-1 px-4 py-2 text-sm font-semibold rounded-xl bg-tertiary text-on-tertiary hover:bg-tertiary/90 transition-colors">Aprobar</button>
-                <button className="flex-1 px-4 py-2 text-sm font-semibold rounded-xl bg-error-container text-on-error-container hover:bg-error-container/80 transition-colors">Rechazar</button>
-              </div>
-            </div>
-          )
-        })}
-      </div>
-
-      {/* Desktop table */}
-      <div className="hidden md:block bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[500px]">
-            <thead>
-              <tr className="border-b border-surface-container">
-                <th className="text-left px-6 py-4 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Nombre</th>
-                <th className="text-left px-6 py-4 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Especialidad</th>
-                <th className="text-left px-6 py-4 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Estado</th>
-                <th className="text-right px-6 py-4 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {approvals.map((doc) => {
-                const colorIndex = approvals.indexOf(doc) % avatarColors.length
-                return (
-                  <tr key={doc.email} className="border-b border-surface-container last:border-b-0 group hover:bg-surface-container-low transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-9 h-9 rounded-xl ${avatarColors[colorIndex]} flex items-center justify-center font-headline font-bold text-sm`}>{getInitials(doc.name)}</div>
-                        <div>
-                          <p className="font-semibold text-on-surface">{doc.name}</p>
-                          <p className="text-xs text-on-surface-variant">{doc.email}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-on-surface-variant">{doc.specialty}</td>
-                    <td className="px-6 py-4">
-                      <span className="text-[10px] font-bold uppercase tracking-widest bg-primary-fixed/30 text-primary px-2.5 py-1 rounded-lg">Pendiente</span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button className="px-4 py-1.5 text-sm font-semibold rounded-lg bg-tertiary text-on-tertiary hover:bg-tertiary/90 transition-colors">Aprobar</button>
-                        <button className="px-4 py-1.5 text-sm font-semibold rounded-lg bg-error-container text-on-error-container hover:bg-error-container/80 transition-colors">Rechazar</button>
-                      </div>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-        <div className="flex items-center justify-between px-6 py-4 border-t border-surface-container">
-          <p className="text-sm text-on-surface-variant">Mostrando 3 de 12 solicitudes</p>
-          <div className="flex items-center gap-1">
-            <button onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
-              <span className="material-symbols-outlined text-lg">chevron_left</span>
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button key={page} onClick={() => setCurrentPage(page)} className={`w-8 h-8 rounded-lg text-sm font-semibold transition-colors ${currentPage === page ? "bg-primary text-on-primary" : "text-on-surface-variant hover:bg-surface-container-low"}`}>{page}</button>
             ))}
-            <button onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
-              <span className="material-symbols-outlined text-lg">chevron_right</span>
-            </button>
           </div>
-        </div>
-      </div>
+
+          {/* Desktop table */}
+          <div className="hidden md:block bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[500px]">
+                <thead>
+                  <tr className="border-b border-surface-container">
+                    <th className="text-left px-6 py-4 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Nombre</th>
+                    <th className="text-left px-6 py-4 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Especialidad</th>
+                    <th className="text-left px-6 py-4 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Estado</th>
+                    <th className="text-right px-6 py-4 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pending.map((doc, idx) => (
+                    <tr key={doc.id} className="border-b border-surface-container last:border-b-0 group hover:bg-surface-container-low transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-9 h-9 rounded-xl ${avatarColors[idx % avatarColors.length]} flex items-center justify-center font-headline font-bold text-sm`}>{getInitials(doc.name)}</div>
+                          <div>
+                            <p className="font-semibold text-on-surface">{doc.name}</p>
+                            <p className="text-xs text-on-surface-variant">{doc.email}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-on-surface-variant">{doc.specialty}</td>
+                      <td className="px-6 py-4">
+                        <span className="text-[10px] font-bold uppercase tracking-widest bg-primary-fixed/30 text-primary px-2.5 py-1 rounded-lg">Pendiente</span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => handleApprove(doc.id)} disabled={acting === doc.id}
+                            className="px-4 py-1.5 text-sm font-semibold rounded-lg bg-tertiary text-on-tertiary hover:bg-tertiary/90 transition-colors disabled:opacity-50"
+                          >{acting === doc.id ? "..." : "Aprobar"}</button>
+                          <button onClick={() => handleReject(doc.id)} disabled={acting === doc.id}
+                            className="px-4 py-1.5 text-sm font-semibold rounded-lg bg-error-container text-on-error-container hover:bg-error-container/80 transition-colors disabled:opacity-50"
+                          >{acting === doc.id ? "..." : "Rechazar"}</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
     </AdminLayout>
   )
 }
