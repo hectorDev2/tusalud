@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { AdminLayout } from "@/components/admin-layout"
 import { ListSkeleton } from "@/components/skeleton"
+import { useToast } from "@/components/toast"
 
 const sidebarItems = [
   { label: "Panel", icon: "dashboard", href: "/admin" },
@@ -53,12 +54,17 @@ export default function DoctorApprovals() {
       .finally(() => setLoading(false))
   }, [])
 
+  const { toast } = useToast()
+
   async function handleApprove(id: string) {
     setActing(id)
     const res = await fetch(`/api/admin/approvals/${id}`, { method: "PATCH" })
     const json = await res.json()
     if (json.ok) {
       setApprovals((prev) => prev.map((a) => (a.id === id ? { ...a, status: "verified" } : a)))
+      toast("Doctor aprobado correctamente", "success")
+    } else {
+      toast(json.error || "Error al aprobar", "error")
     }
     setActing(null)
   }
@@ -68,6 +74,9 @@ export default function DoctorApprovals() {
     const res = await fetch(`/api/admin/approvals/${id}`, { method: "DELETE" })
     if (res.ok) {
       setApprovals((prev) => prev.filter((a) => a.id !== id))
+      toast("Solicitud rechazada", "success")
+    } else {
+      toast("Error al rechazar", "error")
     }
     setActing(null)
   }

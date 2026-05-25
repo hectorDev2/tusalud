@@ -4,6 +4,7 @@ import { useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { TopAppBar } from "@/components/top-app-bar"
 import { BottomNavBar } from "@/components/bottom-nav-bar"
+import { useToast } from "@/components/toast"
 
 export default function NewConsultation() {
   const pathname = usePathname()
@@ -12,6 +13,7 @@ export default function NewConsultation() {
   const [severity, setSeverity] = useState<string>("low")
   const [sending, setSending] = useState(false)
   const [error, setError] = useState("")
+  const { toast } = useToast()
 
   const navItems = [
     { label: "Inicio", icon: "home", href: "/patient" },
@@ -36,9 +38,11 @@ export default function NewConsultation() {
 
     const json = await res.json()
     if (json.ok && json.data?.consultation?.id) {
+      toast("Consulta creada correctamente", "success")
       router.push(`/patient/consultations/${json.data.consultation.id}`)
     } else {
       setError(json.error || "Error al crear la consulta")
+      toast(json.error || "Error al crear la consulta", "error")
       setSending(false)
     }
   }

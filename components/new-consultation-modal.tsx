@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useToast } from "@/components/toast"
 
 const specialties = [
   { id: "general", label: "Médica General", icon: "stethoscope" },
@@ -43,6 +44,7 @@ interface Props {
 
 export function NewConsultationModal({ open, onClose }: Props) {
   const router = useRouter()
+  const { toast } = useToast()
   const [step, setStep] = useState(0)
   const [reason, setReason] = useState("")
   const [specialty, setSpecialty] = useState("")
@@ -66,12 +68,14 @@ export function NewConsultationModal({ open, onClose }: Props) {
 
     if (!json.ok) {
       setError(json.error || "Error al crear la consulta")
+      toast(json.error || "Error al crear la consulta", "error")
       setLoading(false)
       return
     }
 
     setLoading(false)
     onClose()
+    toast("Consulta creada correctamente", "success")
     router.push(`/patient/consultations/${json.data.consultation.id}`)
   }
 

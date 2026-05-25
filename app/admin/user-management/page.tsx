@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { AdminLayout } from "@/components/admin-layout"
 import { ListSkeleton } from "@/components/skeleton"
+import { useToast } from "@/components/toast"
 
 const sidebarItems = [
   { label: "Panel", icon: "dashboard", href: "/admin" },
@@ -100,6 +101,8 @@ export default function UserManagementPage() {
     return true
   })
 
+  const { toast } = useToast()
+
   async function handleToggleStatus(id: string) {
     setToggling(id)
     const res = await fetch("/api/admin/users", {
@@ -116,6 +119,9 @@ export default function UserManagementPage() {
             : u
         )
       )
+      toast("Estado de usuario actualizado", "success")
+    } else {
+      toast(json.error || "Error al actualizar", "error")
     }
     setToggling(null)
   }

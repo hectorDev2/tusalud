@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Manrope, Inter } from "next/font/google"
 import "./globals.css"
 import { DevNavBar } from "@/components/dev-nav-bar"
+import { ToastProvider } from "@/components/toast"
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -53,7 +54,9 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen bg-background text-on-surface font-body antialiased">
         <DevNavBar />
-        {children}
+        <ToastProvider>
+          {children}
+        </ToastProvider>
       </body>
     </html>
   )

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { TopAppBar } from "@/components/top-app-bar"
 import { useSession, useRedirectIfAuthenticated } from "@/lib/use-session"
+import { useToast } from "@/components/toast"
 
 type LoginMethod = "password" | "magic-link"
 
@@ -18,6 +19,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const { toast } = useToast()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -34,6 +36,7 @@ export default function LoginPage() {
 
     if (!json.ok) {
       setError(json.error || "Error al iniciar sesión")
+      toast(json.error || "Error al iniciar sesión", "error")
       setLoading(false)
       return
     }
