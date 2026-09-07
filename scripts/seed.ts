@@ -49,7 +49,6 @@ async function seed() {
 
   const patientId = created.patient
   const doctorId = created.doctor
-  const adminId = created.admin
 
   // 2. Seed patient medical info
   const { error: pErr } = await admin.from("patients").upsert({
@@ -79,8 +78,26 @@ async function seed() {
 
   // 3. Seed consultations
   const consultations = [
-    { patient_id: patientId, doctor_id: doctorId, type: "Médica General", status: "in_progress" as const, date: "Hoy", time: "09:30 AM", reason: "Opresión en el pecho y falta de aire", severity: "medium" as const },
-    { patient_id: patientId, doctor_id: doctorId, type: "Dermatología", status: "completed" as const, date: "Ayer", time: "10:15 AM", reason: "Control de erupción cutánea", severity: "low" as const },
+    {
+      patient_id: patientId,
+      assigned_doctor_id: doctorId,
+      type: "Médica General",
+      status: "assigned" as const,
+      reason: "Opresión en el pecho y falta de aire",
+      severity: "medium" as const,
+      intake: { symptoms: "Opresión en el pecho", duration: "2 días", painScale: 6 },
+    },
+    {
+      patient_id: patientId,
+      assigned_doctor_id: doctorId,
+      type: "Dermatología",
+      status: "closed" as const,
+      reason: "Control de erupción cutánea",
+      severity: "low" as const,
+      intake: { symptoms: "Erupción en brazo", duration: "1 semana", painScale: 2 },
+      closure_summary: "Dermatitis de contacto leve. Se recomienda crema hidrocortisona 1% por 7 días.",
+      requires_formal_consultation: false,
+    },
   ]
   for (const c of consultations) {
     const { error: cErr } = await admin.from("consultations").insert(c)
@@ -88,11 +105,9 @@ async function seed() {
   }
   console.log(`✅ ${consultations.length} consultations seeded`)
 
-  // 4. Seed token transactions
+  // 4. Seed token transactions (100 tokens for test accounts)
   const tokens = [
-    { user_id: patientId, type: "credit" as const, amount: 3, description: "Reinicio semanal", detail: "Asignación programada", date: "Hoy", status: "Completado" },
-    { user_id: patientId, type: "debit" as const, amount: 1, description: "Consulta", detail: "Videollamada con Dr. Aris", date: "Ayer", status: "Debitado" },
-    { user_id: patientId, type: "debit" as const, amount: 2, description: "Recarga de receta", detail: "Cobro automático de farmacia", date: "Ayer", status: "Completado" },
+    { user_id: patientId, type: "credit" as const, amount: 100, description: "Tokens de prueba", detail: "Cuenta de testing" },
   ]
   for (const t of tokens) {
     const { error: tErr } = await admin.from("token_transactions").insert(t)

@@ -9,7 +9,7 @@ export default function VerifyPage() {
 
   const handleResend = async () => {
     setResending(true)
-    const email = JSON.parse(localStorage.getItem("user") || "{}").email || ""
+    const email = new URLSearchParams(window.location.search).get("email") || ""
     await fetch("/api/auth/verify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

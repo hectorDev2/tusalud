@@ -13,5 +13,10 @@ export async function POST(request: NextRequest) {
     response.cookies.set(name, value)
   }
 
+  // Explicitly clear auth cookies
+  response.cookies.set("sb-access-token", "", { expires: new Date(0) })
+  response.cookies.set("sb-refresh-token", "", { expires: new Date(0) })
+  response.cookies.set("supabase-auth-token", "", { expires: new Date(0) })
+
   return response
 }

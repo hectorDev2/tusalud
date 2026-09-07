@@ -40,7 +40,7 @@ export default function LandingPage() {
             medical_services
           </span>
           <span className="text-xl font-bold text-primary font-headline tracking-tight">
-            Sanctuary Health
+            TuSalud
           </span>
         </Link>
         <nav className="hidden md:flex items-center gap-6">
@@ -161,7 +161,7 @@ export default function LandingPage() {
 
               {/* Card 2 — highlighted */}
               <div className="rounded-3xl primary-gradient p-8 shadow-[0_12px_48px_rgba(0,100,124,0.15)] text-on-primary">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 text-on-primary">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-surface-container-lowest/20 text-on-primary">
                   <span className="material-symbols-outlined text-2xl">
                     stethoscope
                   </span>
@@ -284,7 +284,7 @@ export default function LandingPage() {
                   medical_services
                 </span>
                 <span className="text-lg font-bold text-primary font-headline tracking-tight">
-                  Sanctuary Health
+                  TuSalud
                 </span>
               </Link>
               <p className="mt-4 text-sm leading-relaxed text-on-surface-variant max-w-xs">
@@ -344,7 +344,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="mt-14 border-t border-outline-variant/30 pt-8 text-center text-sm text-on-surface-variant">
-            &copy; {new Date().getFullYear()} Sanctuary Health. Todos los
+            &copy; {new Date().getFullYear()} TuSalud. Todos los
             derechos reservados.
           </div>
         </div>

@@ -29,7 +29,7 @@ interface PatientData {
 export default function PatientProfilePage() {
   const router = useRouter()
   const pathname = usePathname()
-  const { user } = useSession()
+  const { user, logout } = useSession()
   const [patient, setPatient] = useState<PatientData | null>(null)
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export default function PatientProfilePage() {
   const navItems = [
     { label: "Inicio", icon: "home", href: "/patient", active: pathname === "/patient" },
     { label: "Consultas", icon: "monitoring", href: "/patient/consultations", active: pathname.startsWith("/patient/consultations") },
-    { label: "Mensajes", icon: "chat", href: "/patient/messages", active: pathname === "/patient/messages" },
+    { label: "Historial", icon: "health_and_safety", href: "/patient/history", active: pathname === "/patient/history" },
     { label: "Cuenta", icon: "account_circle", href: "/patient/profile", active: pathname === "/patient/profile" },
   ]
 
@@ -326,7 +326,7 @@ export default function PatientProfilePage() {
 
             <button
               onClick={async () => {
-                await fetch("/api/auth/logout", { method: "POST" })
+                await logout()
                 router.push("/login")
               }}
               className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-error px-6 py-3 font-label text-sm font-semibold text-error transition-colors hover:bg-error-container active:bg-error/10"

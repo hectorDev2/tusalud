@@ -10,29 +10,26 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
 // ---------- SSR: for middleware & route handlers ----------
 
-export function createRouteClient(request: NextRequest) {
+export function createRouteClient(request: NextRequest, response?: NextResponse) {
   return createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll: () => request.cookies.getAll(),
-      setAll: () => {},
+      setAll: (cookiesToSet) => {
+        cookiesToSet.forEach(({ name, value, options }) => {
+          response?.cookies.set(name, value, options)
+        })
+      },
     },
   })
 }
 
 export function createRouteClientWithResponse(request: NextRequest) {
-  let response = NextResponse.next({ request })
+  // Use a single stable response object so setAll mutates it in place.
+  // Creating a new NextResponse inside setAll was a bug: the returned
+  // `response` reference pointed to the original empty object.
+  const response = NextResponse.next({ request })
 
-  const supabase = createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      getAll: () => request.cookies.getAll(),
-      setAll: (cookiesToSet) => {
-        response = NextResponse.next({ request })
-        cookiesToSet.forEach(({ name, value, options }) =>
-          response.cookies.set(name, value, options)
-        )
-      },
-    },
-  })
+  const supabase = createRouteClient(request, response)
 
   return { supabase, response }
 }
@@ -54,17 +51,4 @@ export function getServiceClient() {
     })
   }
   return _serviceClient
-}
-
-// ---------- Session helpers ----------
-
-export function getUserFromSession(request: Request): { userId: string; role: string; name: string } | null {
-  const cookie = request.headers.get("cookie") || ""
-  const match = cookie.split("; ").find((c) => c.startsWith("session="))
-  if (!match) return null
-  try {
-    return JSON.parse(decodeURIComponent(match.split("=")[1]))
-  } catch {
-    return null
-  }
 }

@@ -2,6 +2,26 @@
 
 Plataforma de telemedicina premium con diseño "Clinical Sanctuary". Mobile-first, accesible, y centrada en la experiencia del paciente.
 
+## Estado de la plataforma
+
+La aplicación está conectada a Supabase y cuenta con autenticación y autorización por rol para los flujos de paciente, doctor y administración. Las migraciones de `supabase/migrations/` están aplicadas en el proyecto remoto vinculado.
+
+### Seguridad implementada
+
+- Supabase Auth es la única fuente de identidad; no se acepta `x-user-id` ni identidad desde `localStorage`.
+- Las API Routes reutilizan `requireAuth()`, `requireAdmin()`, `requireDoctor()` y `requirePatient()` desde `lib/route-auth.ts`.
+- Las rutas privadas están protegidas desde `proxy.ts`.
+- `SUPABASE_SERVICE_ROLE_KEY` se utiliza únicamente en el servidor y después de validar la sesión y el rol.
+- Las RPC sensibles validan `auth.uid()` y las políticas RLS restringen el acceso a los datos clínicos.
+- Los usuarios comunes no pueden cambiar su rol y las consultas no aceptan inserción directa desde el cliente.
+- La asignación de consultas de doctores es atómica y los créditos semanales tienen restricciones contra duplicados.
+
+Para revisar el estado remoto sin exponer secretos:
+
+```bash
+supabase migration list --linked
+```
+
 ## Stack
 
 | Capa | Tecnología |
@@ -79,9 +99,14 @@ El proyecto está conectado a Supabase. Las migraciones están en `supabase/migr
 NEXT_PUBLIC_SUPABASE_URL=https://ymzmjrmruyiqrhkpjyow.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon_key>
 SUPABASE_SERVICE_ROLE_KEY=<service_role_key>
+SUPABASE_DB_PASSWORD=<database_password>
 ```
 
-### Credenciales de prueba
+`SUPABASE_SERVICE_ROLE_KEY` y `SUPABASE_DB_PASSWORD` son secretos de servidor. Guardalos únicamente en `.env.local` o en el proveedor de deploy; nunca los expongas al navegador ni los commitees.
+
+### Credenciales de prueba locales
+
+Estas cuentas son únicamente para desarrollo/demo y deben reemplazarse o eliminarse antes de un despliegue productivo.
 
 | Rol | Email | Contraseña |
 |-----|-------|-----------|
@@ -93,7 +118,9 @@ SUPABASE_SERVICE_ROLE_KEY=<service_role_key>
 
 ```bash
 supabase link --project-ref ymzmjrmruyiqrhkpjyow
-supabase db push          # Aplicar migraciones
+set -a; source .env.local; set +a
+supabase db push --linked # Aplicar migraciones
+supabase migration list --linked
 supabase gen types typescript --linked > lib/database.types.ts
 ```
 
@@ -131,6 +158,7 @@ supabase/
 | `npm run build` | Build de producción |
 | `npm run start` | Servir build |
 | `npm run lint` | Linter ESLint |
+| `npx tsc --noEmit --incremental false` | Verificación de tipos sin generar build |
 | `npx tsx scripts/seed.ts` | Seed de datos iniciales |
 
 ## Deploy (Vercel)

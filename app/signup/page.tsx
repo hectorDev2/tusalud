@@ -36,8 +36,7 @@ export default function SignupPage() {
       return
     }
 
-    localStorage.setItem("user", JSON.stringify(json.data.user))
-    router.push("/verify")
+    router.push(`/verify?email=${encodeURIComponent(email)}`)
   }
 
   return (
@@ -53,7 +52,7 @@ export default function SignupPage() {
             medical_services
           </span>
           <span className="text-xl font-bold text-primary font-headline tracking-tight">
-            Sanctuary Health
+            TuSalud
           </span>
         </Link>
       </header>
@@ -91,6 +90,7 @@ export default function SignupPage() {
                 <input
                   id="fullName"
                   type="text"
+                  autoComplete="name"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="John Doe"
@@ -109,6 +109,7 @@ export default function SignupPage() {
                 <input
                   id="email"
                   type="email"
+                  autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="tu@ejemplo.com"
@@ -128,6 +129,7 @@ export default function SignupPage() {
                   <input
                     id="password"
                     type={showPassword ? "text" : "password"}
+                    autoComplete="new-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Crea una contraseña segura"

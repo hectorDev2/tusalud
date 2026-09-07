@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 import { TopAppBar } from "@/components/top-app-bar"
 import { BottomNavBar } from "@/components/bottom-nav-bar"
-import { usePathname } from "next/navigation"
 import { ListSkeleton } from "@/components/skeleton"
 
 interface Transaction {
@@ -24,7 +23,6 @@ function getTransactionIcon(description: string): string {
 }
 
 export default function TokenLedger() {
-  const pathname = usePathname()
   const [balance, setBalance] = useState(0)
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)

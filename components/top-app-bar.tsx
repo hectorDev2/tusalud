@@ -1,7 +1,10 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
+import { useRouter } from "next/navigation"
 import { ThemeToggle } from "./theme-toggle"
+import { useSession } from "@/lib/use-session"
 
 interface TopAppBarProps {
   showProfile?: boolean
@@ -26,8 +29,17 @@ const roleLinks: Record<string, { href: string; label: string }[]> = {
 export function TopAppBar({
   showProfile,
   profileSrc,
+  profileAlt,
   role = "public",
 }: TopAppBarProps) {
+  const router = useRouter()
+  const { logout } = useSession()
+
+  async function handleLogout() {
+    await logout()
+    router.push("/login")
+  }
+
   return (
     <header className="flex justify-between items-center px-6 py-4 w-full fixed top-0 z-50 bg-[#f7f9fb]/85 dark:bg-[#1a1c1e]/85 backdrop-blur-xl">
       <Link href="/" className="flex items-center gap-3">
@@ -35,7 +47,7 @@ export function TopAppBar({
           medical_services
         </span>
         <span className="text-xl font-bold text-primary font-headline tracking-tight">
-          Sanctuary Health
+          TuSalud
         </span>
       </Link>
       <div className="flex items-center gap-2">
@@ -70,11 +82,14 @@ export function TopAppBar({
           </div>
         )}
         {showProfile && (
-          <div className="w-10 h-10 rounded-full overflow-hidden bg-surface-container-high shadow-sm flex items-center justify-center">
+          <div className="relative w-10 h-10 rounded-full overflow-hidden bg-surface-container-high shadow-sm flex items-center justify-center">
             {profileSrc ? (
-              <img
+              <Image
                 src={profileSrc}
-                alt="Profile"
+                alt={profileAlt ?? "Profile"}
+                fill
+                sizes="40px"
+                unoptimized
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -83,6 +98,16 @@ export function TopAppBar({
               </span>
             )}
           </div>
+        )}
+        {role !== "public" && (
+          <button
+            onClick={handleLogout}
+            aria-label="Cerrar sesión"
+            title="Cerrar sesión"
+            className="flex items-center justify-center w-10 h-10 rounded-xl text-on-surface-variant hover:text-error hover:bg-error-container/40 transition-colors"
+          >
+            <span className="material-symbols-outlined text-xl">logout</span>
+          </button>
         )}
       </div>
     </header>

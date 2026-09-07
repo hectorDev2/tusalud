@@ -17,7 +17,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "Sanctuary Health | Telemedicina Premium",
+  title: "TuSalud | Telemedicina Premium",
   description:
     "Viví un santuario para tu salud. Telemedicina segura y centrada en las personas que prioriza tu tranquilidad.",
 }
@@ -34,10 +34,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-        />
+        <style>{`@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap");`}</style>
         <script
           dangerouslySetInnerHTML={{
             __html: `

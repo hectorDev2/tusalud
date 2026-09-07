@@ -2,7 +2,9 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { ThemeToggle } from "./theme-toggle"
+import { useSession } from "@/lib/use-session"
 
 interface SidebarItem {
   label: string
@@ -19,6 +21,13 @@ interface SidebarProps {
 
 export function Sidebar({ title, subtitle, items }: SidebarProps) {
   const [open, setOpen] = useState(false)
+  const router = useRouter()
+  const { logout } = useSession()
+
+  async function handleLogout() {
+    await logout()
+    router.push("/login")
+  }
 
   return (
     <>
@@ -55,10 +64,13 @@ export function Sidebar({ title, subtitle, items }: SidebarProps) {
               </div>
               <div>
                 <h2 className="font-headline font-bold text-primary text-base">
-                  Sanctuary Health
+                  TuSalud
                 </h2>
                 <p className="font-headline text-[10px] text-on-surface-variant uppercase tracking-tighter">
                   {title}
+                </p>
+                <p className="font-body text-[9px] text-on-surface-variant/70">
+                  {subtitle}
                 </p>
               </div>
             </div>
@@ -86,8 +98,15 @@ export function Sidebar({ title, subtitle, items }: SidebarProps) {
               </Link>
             ))}
           </nav>
-          <div className="pt-4 border-t border-outline-variant/20">
+          <div className="pt-4 border-t border-outline-variant/20 space-y-3">
             <ThemeToggle />
+            <button
+              onClick={handleLogout}
+              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 font-headline font-medium text-sm text-error hover:bg-error-container/40 transition-colors"
+            >
+              <span className="material-symbols-outlined text-lg">logout</span>
+              Cerrar sesión
+            </button>
           </div>
         </div>
       </aside>
@@ -103,10 +122,13 @@ export function Sidebar({ title, subtitle, items }: SidebarProps) {
             </div>
             <div>
               <h2 className="font-headline font-bold text-primary text-xl">
-                Sanctuary Health
+                TuSalud
               </h2>
               <p className="font-headline font-medium text-xs text-on-surface-variant uppercase tracking-tighter">
                 {title}
+              </p>
+              <p className="font-body text-[10px] text-on-surface-variant/70">
+                {subtitle}
               </p>
             </div>
           </div>
@@ -127,8 +149,15 @@ export function Sidebar({ title, subtitle, items }: SidebarProps) {
             ))}
           </nav>
         </div>
-        <div className="px-8 pb-6">
+        <div className="px-8 pb-6 space-y-3">
           <ThemeToggle />
+          <button
+            onClick={handleLogout}
+            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 font-headline font-medium text-sm text-error hover:bg-error-container/40 transition-colors"
+          >
+            <span className="material-symbols-outlined text-lg">logout</span>
+            Cerrar sesión
+          </button>
         </div>
       </aside>
     </>

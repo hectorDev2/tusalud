@@ -50,13 +50,11 @@ const statusColors: Record<Status, { bg: string; dot: string; label: string }> =
 }
 
 const roleMap: Record<string, Role> = {
+  patient: "Paciente",
   paciente: "Paciente",
   doctor: "Doctor",
+  admin: "Administrador",
   administrador: "Administrador",
-}
-
-function toTitle(s: string): string {
-  return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
 const avatarPalette = [
@@ -70,13 +68,21 @@ export default function UserManagementPage() {
   const [activeFilter, setActiveFilter] = useState<FilterTab>("Todos")
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
   const [toggling, setToggling] = useState<string | null>(null)
+  const { toast } = useToast()
 
   useEffect(() => {
+    let cancelled = false
     fetch("/api/admin/users")
-      .then((r) => r.json())
+      .then(async (response) => {
+        const json = await response.json()
+        if (!response.ok || !json.ok) throw new Error(json.error || "No se pudieron cargar los usuarios")
+        return json
+      })
       .then((json) => {
-        if (json.ok && json.data?.users) {
+        if (!cancelled && json.data?.users) {
           setUsers(json.data.users.map((u: Record<string, string>, i: number) => ({
             id: u.id,
             initials: u.name?.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) || "??",
@@ -84,14 +90,20 @@ export default function UserManagementPage() {
             avatarText: avatarPalette[i % avatarPalette.length].split(" ")[1],
             name: u.name,
             email: u.email,
-            role: roleMap[u.role?.toLowerCase()] || "Paciente",
-            status: toTitle(u.status) as Status,
+            role: roleMap[u.role?.toLowerCase()] ?? "Paciente",
+            status: (u.status === "suspendido" ? "Suspendido" : u.status === "pendiente" ? "Pendiente" : "Activo") as Status,
           })))
+          setError(null)
         }
       })
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [])
+      .catch((requestError: unknown) => {
+        if (!cancelled) setError(requestError instanceof Error ? requestError.message : "No se pudieron cargar los usuarios")
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [retryCount])
 
   const filteredUsers = users.filter((user) => {
     if (activeFilter === "Todos") return true
@@ -101,29 +113,29 @@ export default function UserManagementPage() {
     return true
   })
 
-  const { toast } = useToast()
+  function retryLoading() {
+    setError(null)
+    setLoading(true)
+    setRetryCount((count) => count + 1)
+  }
 
   async function handleToggleStatus(id: string) {
     setToggling(id)
-    const res = await fetch("/api/admin/users", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: id }),
-    })
-    const json = await res.json()
-    if (json.ok) {
-      setUsers((prev) =>
-        prev.map((u) =>
-          u.id === id
-            ? { ...u, status: u.status === "Activo" ? "Suspendido" : "Activo" }
-            : u
-        )
-      )
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: id }),
+      })
+      const json = await res.json()
+      if (!res.ok || !json.ok) throw new Error(json.error || "Error al actualizar")
+      setUsers((prev) => prev.map((u) => u.id === id ? { ...u, status: u.status === "Activo" ? "Suspendido" : "Activo" } : u))
       toast("Estado de usuario actualizado", "success")
-    } else {
-      toast(json.error || "Error al actualizar", "error")
+    } catch (requestError) {
+      toast(requestError instanceof Error ? requestError.message : "No se pudo actualizar el usuario", "error")
+    } finally {
+      setToggling(null)
     }
-    setToggling(null)
   }
 
   const filterCounts: Record<FilterTab, number> = {
@@ -177,6 +189,12 @@ export default function UserManagementPage() {
 
       {loading ? (
         <ListSkeleton count={5} />
+      ) : error ? (
+        <div className="rounded-2xl border border-error/30 bg-error-container p-8 text-center">
+          <span className="material-symbols-outlined text-4xl text-error">cloud_off</span>
+          <p className="mt-2 text-sm text-on-error-container">{error}</p>
+          <button type="button" onClick={retryLoading} className="mt-4 rounded-xl bg-error px-4 py-2 text-sm font-semibold text-on-error">Reintentar</button>
+        </div>
       ) : (
         <div className="bg-surface-container-lowest rounded-3xl shadow-sm overflow-hidden">
           <div className="hidden md:block">

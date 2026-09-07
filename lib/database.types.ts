@@ -141,36 +141,54 @@ export type Database = {
       }
       consultations: {
         Row: {
+          assigned_at: string | null
+          assigned_doctor_id: string | null
+          closed_at: string | null
+          closure_summary: string | null
           created_at: string | null
           date: string | null
-          doctor_id: string
+          doctor_id: string | null
           id: string
+          intake: Json | null
           patient_id: string
           reason: string | null
+          requires_formal_consultation: boolean | null
           severity: Database["public"]["Enums"]["consultation_severity"] | null
           status: Database["public"]["Enums"]["consultation_status"]
           time: string | null
           type: string
         }
         Insert: {
+          assigned_at?: string | null
+          assigned_doctor_id?: string | null
+          closed_at?: string | null
+          closure_summary?: string | null
           created_at?: string | null
           date?: string | null
-          doctor_id: string
+          doctor_id?: string | null
           id?: string
+          intake?: Json | null
           patient_id: string
           reason?: string | null
+          requires_formal_consultation?: boolean | null
           severity?: Database["public"]["Enums"]["consultation_severity"] | null
           status?: Database["public"]["Enums"]["consultation_status"]
           time?: string | null
           type: string
         }
         Update: {
+          assigned_at?: string | null
+          assigned_doctor_id?: string | null
+          closed_at?: string | null
+          closure_summary?: string | null
           created_at?: string | null
           date?: string | null
-          doctor_id?: string
+          doctor_id?: string | null
           id?: string
+          intake?: Json | null
           patient_id?: string
           reason?: string | null
+          requires_formal_consultation?: boolean | null
           severity?: Database["public"]["Enums"]["consultation_severity"] | null
           status?: Database["public"]["Enums"]["consultation_status"]
           time?: string | null
@@ -207,6 +225,31 @@ export type Database = {
           },
         ]
       }
+      audit_log: {
+        Row: {
+          id: string
+          actor_id: string | null
+          action: string
+          resource_type: string | null
+          resource_id: string | null
+          metadata: Json | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          actor_id?: string | null
+          action: string
+          resource_type?: string | null
+          resource_id?: string | null
+          metadata?: Json | null
+          created_at?: string | null
+        }
+        Update: {
+          action?: string
+          metadata?: Json | null
+        }
+        Relationships: []
+      }
       doctor_approvals: {
         Row: {
           avatar: string | null
@@ -216,6 +259,7 @@ export type Database = {
           name: string
           specialty: string
           status: Database["public"]["Enums"]["approval_status"]
+          user_id: string | null
         }
         Insert: {
           avatar?: string | null
@@ -225,6 +269,7 @@ export type Database = {
           name: string
           specialty: string
           status?: Database["public"]["Enums"]["approval_status"]
+          user_id?: string | null
         }
         Update: {
           avatar?: string | null
@@ -234,6 +279,7 @@ export type Database = {
           name?: string
           specialty?: string
           status?: Database["public"]["Enums"]["approval_status"]
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -369,6 +415,7 @@ export type Database = {
           avatar: string | null
           created_at: string | null
           id: string
+          last_ui_activity_at: string | null
           name: string
           rating: number | null
           role: Database["public"]["Enums"]["user_role"]
@@ -379,6 +426,7 @@ export type Database = {
           avatar?: string | null
           created_at?: string | null
           id: string
+          last_ui_activity_at?: string | null
           name: string
           rating?: number | null
           role?: Database["public"]["Enums"]["user_role"]
@@ -389,6 +437,7 @@ export type Database = {
           avatar?: string | null
           created_at?: string | null
           id?: string
+          last_ui_activity_at?: string | null
           name?: string
           rating?: number | null
           role?: Database["public"]["Enums"]["user_role"]
@@ -412,9 +461,11 @@ export type Database = {
           description: string
           detail: string | null
           id: string
+          reference_id: string | null
           status: string | null
           type: Database["public"]["Enums"]["token_type"]
           user_id: string
+          week_start: string | null
         }
         Insert: {
           amount: number
@@ -423,9 +474,11 @@ export type Database = {
           description: string
           detail?: string | null
           id?: string
+          reference_id?: string | null
           status?: string | null
           type: Database["public"]["Enums"]["token_type"]
           user_id: string
+          week_start?: string | null
         }
         Update: {
           amount?: number
@@ -434,9 +487,11 @@ export type Database = {
           description?: string
           detail?: string | null
           id?: string
+          reference_id?: string | null
           status?: string | null
           type?: Database["public"]["Enums"]["token_type"]
           user_id?: string
+          week_start?: string | null
         }
         Relationships: [
           {
@@ -489,13 +544,59 @@ export type Database = {
     }
     Functions: {
       get_admin_stats: { Args: never; Returns: Json }
+      auto_off_inactive_doctors: { Args: Record<never, never>; Returns: number }
+      log_audit: {
+        Args: {
+          p_actor_id: string
+          p_action: string
+          p_resource_type?: string | null
+          p_resource_id?: string | null
+          p_metadata?: Json | null
+        }
+        Returns: string
+      }
+      weekly_token_grant: { Args: Record<never, never>; Returns: number }
+      doctor_heartbeat: { Args: { p_doctor_id: string }; Returns: void }
+      get_token_balance: {
+        Args: { p_user_id: string }
+        Returns: number
+      }
+      start_consultation: {
+        Args: {
+          p_patient_id: string
+          p_reason: string
+          p_severity?: string
+          p_intake?: Json
+        }
+        Returns: string
+      }
+      claim_pending_consultation: {
+        Args: { p_consultation_id: string }
+        Returns: string
+      }
+      list_pending_consultations: {
+        Args: Record<never, never>
+        Returns: {
+          id: string
+          status: Database["public"]["Enums"]["consultation_status"]
+          reason: string | null
+          severity: Database["public"]["Enums"]["consultation_severity"] | null
+          intake: Json | null
+          created_at: string | null
+          assigned_at: string | null
+          closed_at: string | null
+          patient_id: string
+          patient_name: string
+          patient_avatar: string | null
+        }[]
+      }
     }
     Enums: {
       agenda_status: "en_curso" | "pendiente" | "completada" | "cancelada"
       agenda_type: "appointment" | "free" | "break"
       approval_status: "pending" | "verified"
       consultation_severity: "low" | "medium" | "high"
-      consultation_status: "completed" | "in_progress" | "pending"
+      consultation_status: "completed" | "in_progress" | "pending" | "assigned" | "closed"
       token_type: "credit" | "debit"
       user_role: "patient" | "doctor" | "admin"
     }

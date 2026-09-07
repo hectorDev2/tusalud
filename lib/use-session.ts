@@ -42,11 +42,17 @@ export function useSession() {
     const supabase = createBrowserSupabase()
     let cancelled = false
 
+    // Supabase Auth is the only source of identity. localStorage must not
+    // restore a user when the server-side session is absent or expired.
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (cancelled) return
       if (session) {
         const u = await fetchProfile(session)
-        if (!cancelled) setUser(u)
+        if (!cancelled) {
+          setUser(u)
+        }
+      } else {
+        setUser(null)
       }
       if (!cancelled) setLoading(false)
     })
@@ -56,7 +62,9 @@ export function useSession() {
         if (cancelled) return
         if (session) {
           const u = await fetchProfile(session)
-          if (!cancelled) setUser(u)
+          if (!cancelled) {
+            setUser(u)
+          }
         } else {
           setUser(null)
         }
@@ -73,11 +81,20 @@ export function useSession() {
     await fetch("/api/auth/logout", { method: "POST" })
     const supabase = createBrowserSupabase()
     await supabase.auth.signOut()
+    localStorage.removeItem("user")
+    localStorage.removeItem("session")
     setUser(null)
   }, [])
 
-  const saveUser = useCallback((u: SessionUser) => {
-    setUser(u)
+  const saveUser = useCallback(async () => {
+    const supabase = createBrowserSupabase()
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      setUser(null)
+      return
+    }
+
+    setUser(await fetchProfile(session))
   }, [])
 
   return { user, loading, logout, saveUser }

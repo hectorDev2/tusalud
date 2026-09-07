@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createRouteClient } from "@/lib/supabase"
+import { createRouteClientWithResponse } from "@/lib/supabase"
 
 const roleGroups: Record<string, string[]> = {
   patient: ["/patient"],
@@ -18,6 +18,12 @@ function getRequiredRole(pathname: string): string | null {
   return null
 }
 
+function copyCookies(from: NextResponse, to: NextResponse) {
+  for (const cookie of from.cookies.getAll()) {
+    to.cookies.set(cookie)
+  }
+}
+
 export default async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
 
@@ -30,28 +36,35 @@ export default async function proxy(req: NextRequest) {
   const requiredRole = getRequiredRole(pathname)
   if (!requiredRole) return NextResponse.next()
 
-  const supabase = createRouteClient(req)
-  const { data: { session } } = await supabase.auth.getSession()
+  const { supabase, response } = createRouteClientWithResponse(req)
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!session) {
-    return NextResponse.redirect(new URL("/login", req.url))
+  if (!user) {
+    const redirect = NextResponse.redirect(new URL("/login", req.url))
+    copyCookies(response, redirect)
+    return redirect
   }
 
   const { data: profile } = await supabase
     .from("profiles")
     .select("role")
-    .eq("id", session.user.id)
+    .eq("id", user.id)
     .single()
 
-  if (profile && profile.role !== requiredRole) {
-    const dest =
-      profile.role === "doctor" ? "/doctor"
-      : profile.role === "admin" ? "/admin"
-      : "/patient"
-    return NextResponse.redirect(new URL(dest, req.url))
+  if (!profile) {
+    const redirect = NextResponse.redirect(new URL("/login", req.url))
+    copyCookies(response, redirect)
+    return redirect
   }
 
-  return NextResponse.next()
+  if (profile.role !== requiredRole) {
+    const destination = profile.role === "admin" ? "/admin" : profile.role === "doctor" ? "/doctor" : "/patient"
+    const redirect = NextResponse.redirect(new URL(destination, req.url))
+    copyCookies(response, redirect)
+    return redirect
+  }
+
+  return response
 }
 
 export const config = {

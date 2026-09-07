@@ -63,7 +63,7 @@ export default function DoctorAgenda() {
           <p className="text-on-surface-variant text-sm mt-1">Tu schedule de consultas y disponibilidad.</p>
         </div>
 
-        <div className="bg-white rounded-2xl p-4 shadow-[0_12px_48px_rgba(25,28,30,0.06)] mb-4">
+        <div className="bg-surface-container-lowest rounded-2xl p-4 shadow-[0_12px_48px_rgba(25,28,30,0.06)] mb-4">
           <div className="flex items-center justify-between mb-4">
             <button className="w-8 h-8 rounded-xl bg-surface-container-low flex items-center justify-center text-on-surface-variant hover:bg-surface-container transition-colors">
               <span className="material-symbols-outlined">chevron_left</span>
@@ -91,19 +91,19 @@ export default function DoctorAgenda() {
         </div>
 
         <div className="grid grid-cols-3 gap-3 mb-4">
-          <div className="bg-white rounded-2xl p-3 shadow-[0_12px_48px_rgba(25,28,30,0.06)] text-center">
+          <div className="bg-surface-container-lowest rounded-2xl p-3 shadow-[0_12px_48px_rgba(25,28,30,0.06)] text-center">
             <p className="text-2xl font-bold font-headline text-on-surface tracking-tight">
               {loading ? "-" : appointments.length}
             </p>
             <p className="text-[10px] text-on-surface-variant mt-0.5 leading-tight">Consultas Hoy</p>
           </div>
-          <div className="bg-white rounded-2xl p-3 shadow-[0_12px_48px_rgba(25,28,30,0.06)] text-center">
+          <div className="bg-surface-container-lowest rounded-2xl p-3 shadow-[0_12px_48px_rgba(25,28,30,0.06)] text-center">
             <p className="text-2xl font-bold font-headline text-on-surface tracking-tight">
               {loading ? "-" : freeSlots.length}
             </p>
             <p className="text-[10px] text-on-surface-variant mt-0.5 leading-tight">Bloques Libres</p>
           </div>
-          <div className="bg-white rounded-2xl p-3 shadow-[0_12px_48px_rgba(25,28,30,0.06)] text-center">
+          <div className="bg-surface-container-lowest rounded-2xl p-3 shadow-[0_12px_48px_rgba(25,28,30,0.06)] text-center">
             <p className="text-2xl font-bold font-headline text-on-surface tracking-tight">22 min</p>
             <p className="text-[10px] text-on-surface-variant mt-0.5 leading-tight">Tiempo Promedio</p>
           </div>
@@ -133,7 +133,7 @@ export default function DoctorAgenda() {
                       <span className="text-xs font-semibold text-on-surface">Almuerzo</span>
                     </div>
                   ) : (
-                    <div className={`bg-white rounded-xl p-3 shadow-[0_4px_16px_rgba(25,28,30,0.06)] border-l-4 ${statusColors[slot.status || ""] || "border-l-outline-variant"}`}>
+                    <div className={`bg-surface-container-lowest rounded-xl p-3 shadow-[0_4px_16px_rgba(25,28,30,0.06)] border-l-4 ${statusColors[slot.status || ""] || "border-l-outline-variant"}`}>
                       <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-xs font-bold text-on-surface-variant shrink-0">
                           {slot.initials || "??"}
@@ -158,7 +158,7 @@ export default function DoctorAgenda() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-16 bg-white rounded-2xl">
+          <div className="text-center py-16 bg-surface-container-lowest rounded-2xl">
             <span className="material-symbols-outlined text-4xl text-on-surface-variant/30">calendar_month</span>
             <p className="mt-3 text-sm text-on-surface-variant">No hay agenda para hoy</p>
           </div>

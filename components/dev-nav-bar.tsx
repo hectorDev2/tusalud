@@ -10,7 +10,7 @@ const routes = [
   { href: "/signup", label: "Signup" },
   { href: "/verify", label: "Verify" },
   { href: "/patient", label: "Patient" },
-  { href: "/patient/new", label: "New Patient" },
+  { href: "/patient/consultations", label: "Patient Consults" },
   { href: "/patient/consultations/c1", label: "Patient Consult" },
   { href: "/patient/tokens", label: "Patient Tokens" },
   { href: "/doctor", label: "Doctor" },
@@ -45,7 +45,7 @@ export function DevNavBar() {
                   className={`shrink-0 px-3 py-1.5 text-xs font-medium rounded-full transition-all ${
                     isActive
                       ? "bg-yellow-400/20 text-yellow-300 border border-yellow-400/30"
-                      : "text-gray-300 hover:text-white hover:bg-white/10 border border-transparent"
+                      : "text-gray-300 hover:text-white hover:bg-surface-container-lowest/10 border border-transparent"
                   }`}
                 >
                   {route.label}

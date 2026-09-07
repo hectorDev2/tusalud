@@ -47,18 +47,33 @@ const defaultStats: Stats = {
 export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats>(defaultStats)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
 
   useEffect(() => {
     fetch("/api/admin/stats")
-      .then((r) => r.json())
-      .then((json) => {
-        if (json.ok && json.data?.stats) {
-          setStats(json.data.stats)
+      .then(async (r) => {
+        const json = await r.json()
+        if (!r.ok || !json.ok || !json.data?.stats) {
+          throw new Error(json.error || "No se pudieron cargar las métricas")
         }
+        return json
       })
-      .catch(() => {})
+      .then((json) => {
+        setStats(json.data.stats)
+        setError(null)
+      })
+      .catch((requestError: unknown) => {
+        setError(requestError instanceof Error ? requestError.message : "No se pudieron cargar las métricas")
+      })
       .finally(() => setLoading(false))
-  }, [])
+  }, [retryCount])
+
+  function retryLoading() {
+    setError(null)
+    setLoading(true)
+    setRetryCount((count) => count + 1)
+  }
 
   return (
     <AdminLayout
@@ -70,7 +85,7 @@ export default function AdminDashboard() {
       <div className="pt-6 pb-6">
         <h1 className="text-2xl md:text-3xl font-bold font-headline text-on-surface">Visión general del sistema</h1>
         <p className="text-on-surface-variant mt-1 text-sm md:text-base">
-          Métricas en tiempo real y acciones pendientes en Sanctuary Health
+          Métricas en tiempo real y acciones pendientes en TuSalud
         </p>
       </div>
 
@@ -80,6 +95,14 @@ export default function AdminDashboard() {
           <CardSkeleton />
           <CardSkeleton />
         </div>
+      ) : error ? (
+        <div className="mb-8 rounded-2xl border border-error/30 bg-error-container p-8 text-center">
+          <span className="material-symbols-outlined text-4xl text-error">cloud_off</span>
+          <p className="mt-2 text-sm text-on-error-container">{error}</p>
+          <button type="button" onClick={retryLoading} className="mt-4 rounded-xl bg-error px-4 py-2 text-sm font-semibold text-on-error">
+            Reintentar
+          </button>
+        </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 mb-8">
           <div className="bg-surface-container-lowest rounded-2xl p-5 md:p-6 shadow-[0_12px_48px_rgba(25,28,30,0.06)]">
@@ -87,24 +110,16 @@ export default function AdminDashboard() {
               <div className="w-10 h-10 rounded-xl bg-primary-fixed/30 flex items-center justify-center">
                 <span className="material-symbols-outlined text-primary">person_play</span>
               </div>
-              <span className="text-sm font-semibold text-tertiary bg-tertiary-fixed/30 px-2.5 py-1 rounded-lg">+12%</span>
             </div>
             <p className="text-2xl md:text-3xl font-bold font-headline text-on-surface">{formatNumber(stats.activeUsers)}</p>
             <p className="text-sm text-on-surface-variant mt-1">Usuarios activos</p>
-            <div className="mt-4 h-1.5 bg-surface-container-high rounded-full overflow-hidden">
-              <div className="h-full w-3/4 rounded-full primary-gradient" />
-            </div>
           </div>
 
           <div className="rounded-2xl p-5 md:p-6 shadow-[0_12px_48px_rgba(25,28,30,0.06)] primary-gradient text-on-primary">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-surface-container-lowest/20 flex items-center justify-center">
                 <span className="material-symbols-outlined">video_chat</span>
               </div>
-              <span className="flex items-center gap-1 text-sm font-semibold bg-white/20 px-2.5 py-1 rounded-lg">
-                <span className="material-symbols-outlined text-sm">trending_up</span>
-                +8.2%
-              </span>
             </div>
             <p className="text-2xl md:text-3xl font-bold font-headline">{formatNumber(stats.totalConsultations)}</p>
             <p className="text-sm text-white/80 mt-1">consultas totales</p>

@@ -22,7 +22,7 @@ export function AdminLayout({ title, subtitle, sidebarItems, bottomNavItems, chi
           <div className="flex items-center gap-3">
             <span className="material-symbols-outlined text-primary">medical_services</span>
             <span className="text-xl font-bold text-primary font-headline tracking-tight">
-              Sanctuary Health
+              TuSalud
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -45,7 +45,7 @@ export function AdminLayout({ title, subtitle, sidebarItems, bottomNavItems, chi
 
       {/* Bottom nav — mobile only */}
       <div className="md:hidden">
-        <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-8 pt-3 bg-white/85 backdrop-blur-2xl rounded-t-[2.5rem] shadow-[0_-12px_48px_rgba(0,0,0,0.06)]">
+        <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-8 pt-3 bg-surface-container-lowest/85 backdrop-blur-2xl rounded-t-[2.5rem] shadow-[0_-12px_48px_rgba(0,0,0,0.06)]">
           {bottomNavItems.map((item) => (
             <Link
               key={item.label}

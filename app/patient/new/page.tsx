@@ -1,26 +1,17 @@
 "use client"
 
 import { useState } from "react"
-import { usePathname, useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { TopAppBar } from "@/components/top-app-bar"
-import { BottomNavBar } from "@/components/bottom-nav-bar"
 import { useToast } from "@/components/toast"
 
 export default function NewConsultation() {
-  const pathname = usePathname()
   const router = useRouter()
   const [reason, setReason] = useState("")
   const [severity, setSeverity] = useState<string>("low")
   const [sending, setSending] = useState(false)
   const [error, setError] = useState("")
   const { toast } = useToast()
-
-  const navItems = [
-    { label: "Inicio", icon: "home", href: "/patient" },
-    { label: "Consultas", icon: "monitoring", href: "/patient/consultations", active: pathname.startsWith("/patient/consultations") || pathname === "/patient/new" },
-    { label: "Mensajes", icon: "chat", href: "/patient/messages" },
-    { label: "Cuenta", icon: "account_circle", href: "/patient/tokens" },
-  ]
 
   async function handleSubmit() {
     if (!reason.trim()) {
@@ -136,7 +127,7 @@ export default function NewConsultation() {
       </main>
 
       <div className="fixed bottom-0 left-0 w-full z-50 px-4 pb-8 pt-3">
-        <div className="bg-white/85 backdrop-blur-2xl rounded-2xl p-4 flex items-center justify-between shadow-[0_-4px_32px_rgba(25,28,30,0.08)] max-w-lg mx-auto">
+        <div className="bg-surface-container-lowest/85 backdrop-blur-2xl rounded-2xl p-4 flex items-center justify-between shadow-[0_-4px_32px_rgba(25,28,30,0.08)] max-w-lg mx-auto">
           <div>
             <p className="font-label text-xs font-semibold text-on-surface-variant">Costo</p>
             <p className="font-headline text-xl font-bold text-on-surface">1 Token</p>

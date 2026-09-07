@@ -1,17 +1,16 @@
 import { NextRequest } from "next/server"
 import { ok, err } from "@/lib/api-types"
-import { createRouteClient } from "@/lib/supabase"
+import { requirePatient } from "@/lib/route-auth"
 
 export async function GET(request: NextRequest) {
-  const supabase = createRouteClient(request)
-
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) return Response.json(err("No autorizado"), { status: 401 })
+  const auth = await requirePatient(request)
+  if (!auth.ok) return auth.response
+  const { supabase, user: authUser } = auth.auth
 
   const { data: profile } = await supabase
     .from("profiles")
     .select("*")
-    .eq("id", session.user.id)
+    .eq("id", authUser.id)
     .single()
 
   if (!profile) return Response.json(err("Perfil no encontrado"), { status: 404 })
@@ -19,7 +18,7 @@ export async function GET(request: NextRequest) {
   const { data: patient } = await supabase
     .from("patients")
     .select("*")
-    .eq("id", session.user.id)
+    .eq("id", authUser.id)
     .single()
 
   const initials = profile.name
@@ -53,7 +52,7 @@ export async function GET(request: NextRequest) {
 
   const user = {
     id: profile.id,
-    email: session.user.email || "",
+    email: authUser.email || "",
     name: profile.name,
     role: profile.role,
     avatar: profile.avatar || "",

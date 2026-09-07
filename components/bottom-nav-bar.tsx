@@ -15,7 +15,7 @@ interface BottomNavBarProps {
 
 export function BottomNavBar({ items }: BottomNavBarProps) {
   return (
-    <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-8 pt-3 bg-white/85 backdrop-blur-2xl rounded-t-[2.5rem] shadow-[0_-12px_48px_rgba(0,0,0,0.06)]">
+    <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-8 pt-3 bg-surface-container-lowest/85 backdrop-blur-2xl rounded-t-[2.5rem] shadow-[0_-12px_48px_rgba(0,0,0,0.06)]">
       {items.map((item) => (
         <Link
           key={item.label}

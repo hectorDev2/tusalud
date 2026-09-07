@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/components/toast"
 
@@ -51,8 +51,21 @@ export function NewConsultationModal({ open, onClose }: Props) {
   const [severity, setSeverity] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [tokenBalance, setTokenBalance] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (!open) return
+    fetch("/api/patient/tokens")
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.ok) setTokenBalance(json.data.balance)
+      })
+      .catch(() => {})
+  }, [open])
 
   if (!open) return null
+
+  const hasTokens = tokenBalance === null || tokenBalance > 0
 
   async function handleSubmit() {
     setLoading(true)
@@ -61,7 +74,7 @@ export function NewConsultationModal({ open, onClose }: Props) {
     const res = await fetch("/api/patient/consultations", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reason, severity }),
+      body: JSON.stringify({ reason, severity, specialty }),
     })
 
     const json = await res.json()
@@ -88,9 +101,9 @@ export function NewConsultationModal({ open, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center p-0 md:p-6">
-      <div className="absolute inset-0 bg-on-surface/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-[#1a1d21]/60 backdrop-blur-md" onClick={onClose} />
 
-      <div className="relative w-full md:max-w-lg bg-surface-container-lowest rounded-t-3xl md:rounded-3xl shadow-2xl max-h-[90dvh] overflow-y-auto animate-slide-up">
+      <div className="relative w-full md:max-w-lg bg-surface-container-lowest rounded-t-3xl md:rounded-3xl shadow-2xl max-h-[90dvh] overflow-y-auto animate-slide-up border border-outline-variant/10">
         {/* Header */}
         <div className="sticky top-0 bg-surface-container-lowest z-10 px-6 pt-6 pb-4 border-b border-outline-variant/10">
           <div className="flex items-center justify-between mb-4">
@@ -162,20 +175,26 @@ export function NewConsultationModal({ open, onClose }: Props) {
                 </p>
               </div>
               <div className="grid grid-cols-1 gap-3">
-                {specialties.map((s) => (
-                  <button
-                    key={s.id}
-                    onClick={() => setSpecialty(s.id)}
-                    className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all text-left ${
-                      specialty === s.id
-                        ? "border-primary bg-primary-fixed/20 text-primary"
-                        : "border-outline-variant/20 bg-surface-container-low text-on-surface hover:bg-surface-container"
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-2xl">{s.icon}</span>
-                    <span className="font-headline font-semibold">{s.label}</span>
-                  </button>
-                ))}
+                {specialties.map((s) => {
+                  const selected = specialty === s.id
+                  return (
+                    <button
+                      key={s.id}
+                      onClick={() => setSpecialty(s.id)}
+                      className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all text-left ${
+                        selected
+                          ? "border-primary bg-primary text-on-primary"
+                          : "border-outline-variant/30 bg-surface-container-low text-on-surface hover:bg-surface-container hover:border-outline-variant"
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-2xl">{s.icon}</span>
+                      <span className="font-headline font-semibold flex-1">{s.label}</span>
+                      {selected && (
+                        <span className="material-symbols-outlined text-xl">check_circle</span>
+                      )}
+                    </button>
+                  )
+                })}
               </div>
             </div>
           )}
@@ -239,12 +258,26 @@ export function NewConsultationModal({ open, onClose }: Props) {
                 </div>
               </div>
 
-              <div className="bg-primary-fixed/20 rounded-2xl p-4 flex items-center gap-3">
-                <span className="material-symbols-outlined text-primary">info</span>
-                <p className="font-body text-xs text-on-surface-variant">
-                  Al enviar, se descontará 1 token de tu cuenta. Podés cancelar en cualquier momento.
-                </p>
-              </div>
+              {/* Token balance banner */}
+              {tokenBalance !== null && !hasTokens ? (
+                <div className="bg-error-container/50 rounded-2xl p-4 flex items-center gap-3">
+                  <span className="material-symbols-outlined text-error">token</span>
+                  <div>
+                    <p className="font-headline font-semibold text-error text-sm">Sin tokens disponibles</p>
+                    <p className="font-body text-xs text-on-surface-variant mt-0.5">
+                      Esperá la asignación semanal (lunes) o comprá tokens adicionales.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-primary-fixed/20 rounded-2xl p-4 flex items-center gap-3">
+                  <span className="material-symbols-outlined text-primary">token</span>
+                  <p className="font-body text-xs text-on-surface-variant">
+                    Se descontará <strong>1 token</strong> de tu saldo actual
+                    {tokenBalance !== null ? ` (${tokenBalance} disponibles)` : ""}.
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
@@ -277,7 +310,7 @@ export function NewConsultationModal({ open, onClose }: Props) {
             ) : (
               <button
                 onClick={handleSubmit}
-                disabled={loading}
+                disabled={loading || !hasTokens}
                 className="flex-1 py-3.5 rounded-2xl primary-gradient font-headline font-semibold text-on-primary shadow-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
               >
                 {loading ? (

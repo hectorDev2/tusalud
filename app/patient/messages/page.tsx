@@ -46,7 +46,7 @@ export default function MessagesPage() {
   const navItems = [
     { label: "Inicio", icon: "home", href: "/patient", active: pathname === "/patient" },
     { label: "Consultas", icon: "monitoring", href: "/patient/consultations", active: pathname.startsWith("/patient/consultations") },
-    { label: "Mensajes", icon: "chat", href: "/patient/messages", active: pathname === "/patient/messages" },
+    { label: "Historial", icon: "health_and_safety", href: "/patient/history", active: pathname === "/patient/history" },
     { label: "Cuenta", icon: "account_circle", href: "/patient/tokens", active: pathname === "/patient/tokens" },
   ]
 
@@ -69,11 +69,11 @@ export default function MessagesPage() {
         ) : messages.length > 0 ? (
           <section className="space-y-2">
             {messages.map((thread, i) => {
-              const isSystem = thread.fromName === "Sanctuary Health"
+              const isSystem = thread.fromName === "TuSalud"
               const href = thread.threadId === "tokens" ? "/patient/tokens" : `/patient/consultations/${thread.threadId}`
               return (
                 <Link key={thread.id} href={href}
-                  className="bg-white rounded-2xl p-4 flex items-center gap-3 shadow-[0_4px_16px_rgba(25,28,30,0.04)] hover:bg-surface-container-low transition-colors block"
+                  className="bg-surface-container-lowest rounded-2xl p-4 flex items-center gap-3 shadow-[0_4px_16px_rgba(25,28,30,0.04)] hover:bg-surface-container-low transition-colors block"
                 >
                   {isSystem ? (
                     <div className="w-12 h-12 rounded-full bg-primary-fixed flex items-center justify-center flex-shrink-0">

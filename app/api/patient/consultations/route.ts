@@ -1,57 +1,70 @@
 import { NextRequest } from "next/server"
 import { ok, err } from "@/lib/api-types"
-import { createRouteClient } from "@/lib/supabase"
+import { requirePatient } from "@/lib/route-auth"
 
 export async function GET(request: NextRequest) {
-  const supabase = createRouteClient(request)
-
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) return Response.json(err("No autorizado"), { status: 401 })
+  const auth = await requirePatient(request)
+  if (!auth.ok) return auth.response
+  const { supabase, user } = auth.auth
 
   const { data: consultations } = await supabase
     .from("consultations")
-    .select("*, doctor:doctor_id(id, name, specialty, avatar, rating, available)")
+    .select(`
+      id, status, reason, severity, intake, created_at, assigned_at, closed_at,
+      doctor:assigned_doctor_id(id, name, specialty, avatar, rating, available)
+    `)
+    .eq("patient_id", user.id)
     .order("created_at", { ascending: false })
 
-  return Response.json(ok({ consultations: consultations || [] }))
+  return Response.json(ok({ consultations: consultations ?? [] }))
 }
 
 export async function POST(request: NextRequest) {
-  const supabase = createRouteClient(request)
-
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) return Response.json(err("No autorizado"), { status: 401 })
+  const auth = await requirePatient(request)
+  if (!auth.ok) return auth.response
+  const { supabase, user } = auth.auth
 
   const body = await request.json()
-  const { reason, severity } = body
+  const { reason, severity = "low", specialty } = body
 
-  if (!reason) {
+  if (!reason?.trim()) {
     return Response.json(err("El motivo de la consulta es requerido"), { status: 400 })
   }
 
-  const { data: doctor } = await supabase
-    .from("profiles")
-    .select("id")
-    .eq("role", "doctor")
-    .limit(1)
-    .single()
+  const intake = {
+    chief_complaint: reason.trim(),
+    severity,
+    specialty: specialty ?? null,
+    started_at: new Date().toISOString(),
+  }
 
-  const { data: consultation, error } = await supabase
+  // Atomic: verify token balance, debit 1 token, create consultation
+  const { data: consultationId, error } = await supabase.rpc("start_consultation", {
+    p_patient_id: user.id,
+    p_reason: reason.trim(),
+    p_severity: severity,
+    p_intake: intake,
+  })
+
+  if (error) {
+    if (error.message.includes("SIN_TOKENS")) {
+      return Response.json(
+        err("No tenés tokens disponibles. Esperá la asignación semanal o comprá más tokens."),
+        { status: 422 }
+      )
+    }
+    return Response.json(err(error.message), { status: 500 })
+  }
+
+  // Fetch the created consultation to return to the client
+  const { data: consultation } = await supabase
     .from("consultations")
-    .insert({
-      patient_id: session.user.id,
-      doctor_id: doctor?.id || session.user.id,
-      type: "Consulta General",
-      status: "pending",
-      date: "Hoy",
-      time: new Date().toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }),
-      reason,
-      severity: severity || "low",
-    })
-    .select("*, doctor:doctor_id(id, name, specialty, avatar, rating, available)")
+    .select(`
+      id, status, reason, severity, intake, created_at, assigned_at,
+      doctor:assigned_doctor_id(id, name, specialty, avatar, rating, available)
+    `)
+    .eq("id", consultationId)
     .single()
-
-  if (error) return Response.json(err(error.message), { status: 500 })
 
   return Response.json(ok({ consultation }), { status: 201 })
 }

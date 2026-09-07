@@ -162,7 +162,7 @@ const patients: Patient[] = [
   },
 ]
 
-let consultations: Consultation[] = [
+const consultations: Consultation[] = [
   { id: "c1", patient: patients[0], doctor: doctors[0], type: "Médica General", status: "in-progress", date: "Hoy", time: "09:30 AM", reason: "Opresión en el pecho y falta de aire", severity: "medium" },
   { id: "c2", patient: patients[1], doctor: doctors[0], type: "Dermatología", status: "pending", date: "Hoy", time: "10:15 AM", reason: "Control de erupción cutánea", severity: "low" },
   { id: "c3", patient: patients[2], doctor: doctors[2], type: "Chequeo Anual", status: "pending", date: "Hoy", time: "11:00 AM", reason: "Resultados del chequeo anual", severity: "low" },
@@ -186,7 +186,7 @@ export const messages: Message[] = [
   { id: "m2", from: "d2", fromName: "Dr. James Chen", fromInitials: "JC", preview: "Los resultados de laboratorio están listos. Podés...", time: "Ayer", unread: false, threadId: "c5" },
   { id: "m3", from: "d4", fromName: "Dr. Elena Vance", fromInitials: "EV", preview: "Recordatorio: tenés consulta mañana a las 9:00 AM", time: "15 Oct", unread: false, threadId: "c7" },
   { id: "m4", from: "d5", fromName: "Dr. Marcus Thorne", fromInitials: "MT", preview: "Tu presión arterial está estable. Seguí con...", time: "10 Oct", unread: false, threadId: "c4" },
-  { id: "m5", from: "system", fromName: "Sanctuary Health", fromInitials: "SH", preview: "Tus 3 tokens semanales fueron acreditados", time: "8 Oct", unread: true, threadId: "tokens" },
+  { id: "m5", from: "system", fromName: "TuSalud", fromInitials: "TS", preview: "Tus 3 tokens semanales fueron acreditados", time: "8 Oct", unread: true, threadId: "tokens" },
 ]
 
 export const doctorApprovals: DoctorApproval[] = [
@@ -272,7 +272,8 @@ function createStore() {
       currentUser = user
       return user
     },
-    signup(_name: string, email: string, _password: string): User {
+    signup(_name: string, email: string, password: string): User {
+      void password
       currentUser = { ...currentUser, email, name: _name }
       return currentUser
     },

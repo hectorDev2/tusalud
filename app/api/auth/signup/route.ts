@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { ok, err, type AuthResponse } from "@/lib/api-types"
-import { createRouteClientWithResponse } from "@/lib/supabase"
+import { createRouteClientWithResponse, getServiceClient } from "@/lib/supabase"
 
 export async function POST(request: NextRequest) {
   const body = await request.json()
@@ -34,12 +34,56 @@ export async function POST(request: NextRequest) {
     .eq("id", data.user.id)
     .single()
 
+  // If profile doesn't exist or can't be read (RLS issue), create it
+  let profileData = profile
+  if (!profileData) {
+    // Use service role to bypass RLS
+    const admin = getServiceClient()
+
+    // First check if it exists with admin
+    const { data: existingProfile } = await admin
+      .from("profiles")
+      .select("id, name, role, avatar")
+      .eq("id", data.user.id)
+      .single()
+
+    if (existingProfile) {
+      profileData = existingProfile
+    } else {
+      // Create it
+      const { error: insertError } = await admin
+        .from("profiles")
+        .insert({ id: data.user.id, name, role: "patient" })
+
+      if (insertError) {
+        console.error("Failed to create profile:", insertError)
+      } else {
+        // Also ensure patients record exists for patient role
+        await admin
+          .from("patients")
+          .upsert({ id: data.user.id })
+          .then(({ error }) => {
+            if (error) console.error("Failed to create patient record:", error)
+          })
+      }
+
+      // Re-fetch profile after creation
+      const { data: newProfile } = await admin
+        .from("profiles")
+        .select("id, name, role, avatar")
+        .eq("id", data.user.id)
+        .single()
+
+      profileData = newProfile || null
+    }
+  }
+
   const user = {
     id: data.user.id,
     email: data.user.email!,
-    name: profile?.name || name,
-    role: (profile?.role as "patient" | "doctor" | "admin") || "patient",
-    avatar: profile?.avatar || "",
+    name: profileData?.name || name,
+    role: (profileData?.role as "patient" | "doctor" | "admin") || "patient",
+    avatar: profileData?.avatar || "",
     token: data.session?.access_token || "",
   }
 
