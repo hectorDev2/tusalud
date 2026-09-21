@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import type { User as SupabaseUser } from "@supabase/supabase-js"
 import { err } from "@/lib/api-types"
 import { createRouteClient } from "@/lib/supabase"
+import { getAuthProfile } from "@/lib/auth-profile"
 import type { Database } from "@/lib/database.types"
 
 export type AppRole = Database["public"]["Enums"]["user_role"]
@@ -35,16 +36,9 @@ export async function requireAuth(request: NextRequest): Promise<AuthResult> {
     return { ok: false, response: unauthorized() }
   }
 
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("id, name, role")
-    .eq("id", data.user.id)
-    .single()
+  const profile = await getAuthProfile(data.user.id)
 
-  if (profileError || !profile) {
-    if (profileError) {
-      console.error("Unable to load authenticated profile", profileError)
-    }
+  if (!profile) {
     return { ok: false, response: forbidden("Perfil no autorizado") }
   }
 

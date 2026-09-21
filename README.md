@@ -15,6 +15,8 @@ La aplicación está conectada a Supabase y cuenta con autenticación y autoriza
 - Las RPC sensibles validan `auth.uid()` y las políticas RLS restringen el acceso a los datos clínicos.
 - Los usuarios comunes no pueden cambiar su rol y las consultas no aceptan inserción directa desde el cliente.
 - La asignación de consultas de doctores es atómica y los créditos semanales tienen restricciones contra duplicados.
+- Usuarios autenticados pueden reportar errores con descripción, prioridad, contexto técnico y captura de pantalla.
+- Los administradores gestionan los reportes desde `/admin/bug-reports`.
 
 Para revisar el estado remoto sin exponer secretos:
 
@@ -79,6 +81,7 @@ Colores: palette Material 3 custom (M3), modo claro únicamente por ahora.
 | `/admin/doctor-approvals` | Aprobaciones de doctores |
 | `/admin/user-management` | Gestión de usuarios |
 | `/admin/token-ledger` | Libro de tokens global |
+| `/admin/bug-reports` | Bandeja de reportes de errores |
 
 ## Desarrollo
 
@@ -138,10 +141,12 @@ app/
 │   ├── auth/           #   login, signup, logout, verify
 │   ├── patient/        #   profile, consultations, tokens, messages
 │   ├── doctor/         #   profile, consultations, agenda
-│   └── admin/          #   stats, patients, approvals, users, tokens
+│   ├── admin/          #   stats, patients, approvals, users, tokens
+│   └── bug-reports/    #   recepción de reportes con adjuntos
 ├── page.tsx            # Landing page
 └── layout.tsx          # Layout raíz
 components/             # Componentes compartidos
+components/bug-report-widget.tsx # Reporte global de errores
 lib/                    # Supabase client, hooks, tipos, api-types
 proxy.ts                # Middleware de autenticación
 scripts/                # Scripts de seed

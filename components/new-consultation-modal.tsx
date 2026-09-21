@@ -18,21 +18,21 @@ const severityLevels = [
     id: "low",
     label: "Leve",
     desc: "Molestia menor, puede esperar",
-    color: "bg-tertiary-fixed/20 text-tertiary border-tertiary-fixed/30",
+    color: "bg-surface-container-lowest text-on-surface border-tertiary",
     activeColor: "bg-tertiary text-on-tertiary border-tertiary",
   },
   {
     id: "medium",
     label: "Moderado",
     desc: "Incomodidad constante, requiere atención",
-    color: "bg-primary-fixed/20 text-primary border-primary-fixed/30",
+    color: "bg-surface-container-lowest text-on-surface border-primary",
     activeColor: "bg-primary text-on-primary border-primary",
   },
   {
     id: "high",
     label: "Urgente",
     desc: "Dolor intenso, atención inmediata",
-    color: "bg-error-container/50 text-error border-error-container",
+    color: "bg-surface-container-lowest text-on-surface border-error",
     activeColor: "bg-error text-on-error border-error",
   },
 ]
@@ -101,16 +101,17 @@ export function NewConsultationModal({ open, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center p-0 md:p-6">
-      <div className="absolute inset-0 bg-[#1a1d21]/60 backdrop-blur-md" onClick={onClose} />
+      <div className="absolute inset-0 bg-[#0b1220]/75 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="relative w-full md:max-w-lg bg-surface-container-lowest rounded-t-3xl md:rounded-3xl shadow-2xl max-h-[90dvh] overflow-y-auto animate-slide-up border border-outline-variant/10">
+      <div className="relative isolate w-full md:max-w-lg bg-surface-container-lowest rounded-t-3xl md:rounded-3xl shadow-2xl max-h-[90dvh] overflow-y-auto animate-slide-up border-2 border-outline/60">
         {/* Header */}
-        <div className="sticky top-0 bg-surface-container-lowest z-10 px-6 pt-6 pb-4 border-b border-outline-variant/10">
+        <div className="sticky top-0 bg-surface-container-lowest z-10 px-6 pt-6 pb-4 border-b-2 border-outline-variant/60">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-headline text-xl font-bold text-on-surface">Nueva consulta</h2>
             <button
               onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-colors"
+              aria-label="Cerrar"
+              className="w-8 h-8 flex items-center justify-center rounded-full text-on-surface hover:bg-surface-container-high focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-colors"
             >
               <span className="material-symbols-outlined text-on-surface-variant">close</span>
             </button>
@@ -122,7 +123,7 @@ export function NewConsultationModal({ open, onClose }: Props) {
               <div
                 key={i}
                 className={`h-1.5 flex-1 rounded-full transition-colors ${
-                  i <= step ? "bg-primary" : "bg-surface-container-high"
+                  i <= step ? "bg-primary" : "bg-outline-variant"
                 }`}
               />
             ))}
@@ -134,7 +135,7 @@ export function NewConsultationModal({ open, onClose }: Props) {
 
         <div className="px-6 py-6 space-y-6">
           {error && (
-            <div className="rounded-xl bg-error-container/50 px-4 py-3 text-sm font-medium text-error">
+            <div className="rounded-xl border border-error bg-error-container px-4 py-3 text-sm font-medium text-on-error-container">
               {error}
             </div>
           )}
@@ -155,7 +156,7 @@ export function NewConsultationModal({ open, onClose }: Props) {
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="Ej: Hace 3 días que tengo dolor de cabeza persistente y fiebre..."
                 rows={5}
-                className="w-full bg-surface-container-low border-none rounded-2xl p-5 text-base text-on-surface outline-none focus:ring-2 focus:ring-primary/30 transition-all placeholder:text-on-surface-variant/50 resize-none"
+                className="w-full bg-surface-container-lowest border-2 border-outline rounded-2xl p-5 text-base text-on-surface outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition-all placeholder:text-on-surface-variant/75 resize-none"
               />
               <p className="font-label text-xs text-on-surface-variant text-right">
                 {reason.length} caracteres (mín. 10)
@@ -184,7 +185,7 @@ export function NewConsultationModal({ open, onClose }: Props) {
                       className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all text-left ${
                         selected
                           ? "border-primary bg-primary text-on-primary"
-                          : "border-outline-variant/30 bg-surface-container-low text-on-surface hover:bg-surface-container hover:border-outline-variant"
+                          : "border-outline bg-surface-container-lowest text-on-surface hover:bg-surface-container-low hover:border-primary"
                       }`}
                     >
                       <span className="material-symbols-outlined text-2xl">{s.icon}</span>
@@ -220,7 +221,7 @@ export function NewConsultationModal({ open, onClose }: Props) {
                     }`}
                   >
                     <p className="font-headline font-bold text-lg">{s.label}</p>
-                    <p className="font-body text-sm mt-0.5 opacity-80">{s.desc}</p>
+                    <p className="font-body text-sm mt-0.5 text-on-surface-variant">{s.desc}</p>
                   </button>
                 ))}
               </div>
@@ -240,17 +241,17 @@ export function NewConsultationModal({ open, onClose }: Props) {
               </div>
 
               <div className="space-y-4">
-                <div className="bg-surface-container-low rounded-2xl p-5 space-y-1">
+                <div className="bg-surface-container-low rounded-2xl border border-outline-variant/70 p-5 space-y-1">
                   <p className="font-label text-xs text-on-surface-variant uppercase tracking-wider">Motivo</p>
                   <p className="font-body text-sm text-on-surface">{reason}</p>
                 </div>
-                <div className="bg-surface-container-low rounded-2xl p-5 space-y-1">
+                <div className="bg-surface-container-low rounded-2xl border border-outline-variant/70 p-5 space-y-1">
                   <p className="font-label text-xs text-on-surface-variant uppercase tracking-wider">Especialidad</p>
                   <p className="font-headline font-semibold text-on-surface">
                     {specialties.find((s) => s.id === specialty)?.label}
                   </p>
                 </div>
-                <div className="bg-surface-container-low rounded-2xl p-5 space-y-1">
+                <div className="bg-surface-container-low rounded-2xl border border-outline-variant/70 p-5 space-y-1">
                   <p className="font-label text-xs text-on-surface-variant uppercase tracking-wider">Urgencia</p>
                   <p className="font-headline font-semibold text-on-surface">
                     {severityLevels.find((s) => s.id === severity)?.label}
@@ -260,19 +261,19 @@ export function NewConsultationModal({ open, onClose }: Props) {
 
               {/* Token balance banner */}
               {tokenBalance !== null && !hasTokens ? (
-                <div className="bg-error-container/50 rounded-2xl p-4 flex items-center gap-3">
+                <div className="bg-error-container rounded-2xl border border-error p-4 flex items-center gap-3">
                   <span className="material-symbols-outlined text-error">token</span>
                   <div>
-                    <p className="font-headline font-semibold text-error text-sm">Sin tokens disponibles</p>
-                    <p className="font-body text-xs text-on-surface-variant mt-0.5">
+                    <p className="font-headline font-semibold text-on-error-container text-sm">Sin tokens disponibles</p>
+                    <p className="font-body text-xs text-on-error-container mt-0.5">
                       Esperá la asignación semanal (lunes) o comprá tokens adicionales.
                     </p>
                   </div>
                 </div>
               ) : (
-                <div className="bg-primary-fixed/20 rounded-2xl p-4 flex items-center gap-3">
+                <div className="bg-primary-fixed/20 rounded-2xl border border-primary/60 p-4 flex items-center gap-3">
                   <span className="material-symbols-outlined text-primary">token</span>
-                  <p className="font-body text-xs text-on-surface-variant">
+                  <p className="font-body text-xs text-on-surface">
                     Se descontará <strong>1 token</strong> de tu saldo actual
                     {tokenBalance !== null ? ` (${tokenBalance} disponibles)` : ""}.
                   </p>
@@ -286,14 +287,14 @@ export function NewConsultationModal({ open, onClose }: Props) {
             {step > 0 ? (
               <button
                 onClick={() => setStep((s) => s - 1)}
-                className="flex-1 py-3.5 rounded-2xl border border-outline-variant/30 font-headline font-semibold text-on-surface hover:bg-surface-container-low transition-all"
+                className="flex-1 py-3.5 rounded-2xl border-2 border-outline font-headline font-semibold text-on-surface hover:bg-surface-container-low transition-all"
               >
                 Atrás
               </button>
             ) : (
               <button
                 onClick={onClose}
-                className="flex-1 py-3.5 rounded-2xl border border-outline-variant/30 font-headline font-semibold text-on-surface hover:bg-surface-container-low transition-all"
+                className="flex-1 py-3.5 rounded-2xl border-2 border-outline font-headline font-semibold text-on-surface hover:bg-surface-container-low transition-all"
               >
                 Cancelar
               </button>
@@ -303,7 +304,7 @@ export function NewConsultationModal({ open, onClose }: Props) {
               <button
                 onClick={() => setStep((s) => s + 1)}
                 disabled={!canAdvance()}
-                className="flex-1 py-3.5 rounded-2xl primary-gradient font-headline font-semibold text-on-primary shadow-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                className="flex-1 py-3.5 rounded-2xl bg-primary font-headline font-semibold text-on-primary shadow-lg disabled:bg-surface-container-highest disabled:text-on-surface-variant disabled:shadow-none disabled:opacity-100 disabled:cursor-not-allowed transition-all"
               >
                 Continuar
               </button>
@@ -311,7 +312,7 @@ export function NewConsultationModal({ open, onClose }: Props) {
               <button
                 onClick={handleSubmit}
                 disabled={loading || !hasTokens}
-                className="flex-1 py-3.5 rounded-2xl primary-gradient font-headline font-semibold text-on-primary shadow-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                className="flex-1 py-3.5 rounded-2xl bg-primary font-headline font-semibold text-on-primary shadow-lg disabled:bg-surface-container-highest disabled:text-on-surface-variant disabled:shadow-none disabled:opacity-100 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>

@@ -139,6 +139,74 @@ export type Database = {
           },
         ]
       }
+      bug_reports: {
+        Row: {
+          admin_notes: string | null
+          attachment_mime_type: string | null
+          attachment_name: string | null
+          attachment_path: string | null
+          attachment_size: number | null
+          created_at: string
+          description: string
+          error_context: Json | null
+          id: string
+          page_url: string | null
+          priority: Database["public"]["Enums"]["bug_report_priority"]
+          reporter_id: string
+          resolved_at: string | null
+          status: Database["public"]["Enums"]["bug_report_status"]
+          title: string
+          updated_at: string
+          user_agent: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          attachment_mime_type?: string | null
+          attachment_name?: string | null
+          attachment_path?: string | null
+          attachment_size?: number | null
+          created_at?: string
+          description: string
+          error_context?: Json | null
+          id?: string
+          page_url?: string | null
+          priority?: Database["public"]["Enums"]["bug_report_priority"]
+          reporter_id: string
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["bug_report_status"]
+          title: string
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          attachment_mime_type?: string | null
+          attachment_name?: string | null
+          attachment_path?: string | null
+          attachment_size?: number | null
+          created_at?: string
+          description?: string
+          error_context?: Json | null
+          id?: string
+          page_url?: string | null
+          priority?: Database["public"]["Enums"]["bug_report_priority"]
+          reporter_id?: string
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["bug_report_status"]
+          title?: string
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bug_reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       consultations: {
         Row: {
           assigned_at: string | null
@@ -595,6 +663,8 @@ export type Database = {
       agenda_status: "en_curso" | "pendiente" | "completada" | "cancelada"
       agenda_type: "appointment" | "free" | "break"
       approval_status: "pending" | "verified"
+      bug_report_priority: "low" | "normal" | "high" | "critical"
+      bug_report_status: "open" | "in_progress" | "resolved" | "closed"
       consultation_severity: "low" | "medium" | "high"
       consultation_status: "completed" | "in_progress" | "pending" | "assigned" | "closed"
       token_type: "credit" | "debit"

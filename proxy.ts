@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createRouteClientWithResponse } from "@/lib/supabase"
+import { getAuthProfile } from "@/lib/auth-profile"
 
 const roleGroups: Record<string, string[]> = {
   patient: ["/patient"],
@@ -40,24 +41,23 @@ export default async function proxy(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
+    console.warn(`[proxy] redirecting ${pathname}: session not found`)
     const redirect = NextResponse.redirect(new URL("/login", req.url))
     copyCookies(response, redirect)
     return redirect
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single()
+  const profile = await getAuthProfile(user.id)
 
   if (!profile) {
+    console.warn(`[proxy] redirecting ${pathname}: profile not found`)
     const redirect = NextResponse.redirect(new URL("/login", req.url))
     copyCookies(response, redirect)
     return redirect
   }
 
   if (profile.role !== requiredRole) {
+    console.warn(`[proxy] redirecting ${pathname}: role ${profile.role} does not match ${requiredRole}`)
     const destination = profile.role === "admin" ? "/admin" : profile.role === "doctor" ? "/doctor" : "/patient"
     const redirect = NextResponse.redirect(new URL(destination, req.url))
     copyCookies(response, redirect)

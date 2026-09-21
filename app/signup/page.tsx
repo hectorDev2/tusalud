@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useRedirectIfAuthenticated } from "@/lib/use-session"
+import { GoogleAuthButton } from "@/components/google-auth-button"
 
 export default function SignupPage() {
   useRedirectIfAuthenticated()
@@ -37,6 +38,10 @@ export default function SignupPage() {
     }
 
     router.push(`/verify?email=${encodeURIComponent(email)}`)
+  }
+
+  function handleGoogleSignup(role: "patient" | "doctor" | "admin") {
+    window.location.replace(`/${role}`)
   }
 
   return (
@@ -184,6 +189,19 @@ export default function SignupPage() {
                 {loading ? "Creando cuenta..." : "Crear cuenta"}
               </button>
             </form>
+
+            <div className="mt-8 flex items-center gap-4">
+              <div className="h-px flex-1 bg-outline-variant/50" />
+              <span className="text-xs font-medium uppercase tracking-widest text-on-surface-variant">
+                o registrate con
+              </span>
+              <div className="h-px flex-1 bg-outline-variant/50" />
+            </div>
+
+            <GoogleAuthButton
+              onError={setError}
+              onSuccess={handleGoogleSignup}
+            />
 
             {/* Log in link */}
             <p className="mt-8 text-center text-sm text-on-surface-variant">

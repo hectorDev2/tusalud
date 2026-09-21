@@ -98,7 +98,10 @@ begin
     coalesce(v_doctor_id, null),
     v_doctor_id,
     'Consulta General',
-    case when v_doctor_id is not null then 'assigned' else 'pending' end,
+    case
+      when v_doctor_id is not null then 'assigned'::consultation_status
+      else 'pending'::consultation_status
+    end,
     p_reason,
     p_severity::consultation_severity,
     p_intake,

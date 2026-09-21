@@ -11,12 +11,14 @@ const sidebarItems = [
   { label: "Aprobaciones de Doctores", icon: "verified_user", href: "/admin/doctor-approvals" },
   { label: "Gestión de Usuarios", icon: "group", href: "/admin/user-management" },
   { label: "Libro de Tokens", icon: "payments", href: "/admin/token-ledger" },
+  { label: "Reportes de errores", icon: "bug_report", href: "/admin/bug-reports" },
 ]
 
 const bottomNavItems = [
   { label: "Inicio", icon: "home", href: "/admin", active: true },
   { label: "Consultas", icon: "video_chat", href: "/admin/doctor-approvals" },
   { label: "Tokens", icon: "payments", href: "/admin/token-ledger" },
+  { label: "Reportes", icon: "bug_report", href: "/admin/bug-reports" },
   { label: "Perfil", icon: "person", href: "/admin" },
 ]
 

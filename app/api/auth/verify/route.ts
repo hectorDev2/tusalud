@@ -1,6 +1,29 @@
-import { NextRequest } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { ok, err } from "@/lib/api-types"
-import { createRouteClient } from "@/lib/supabase"
+import { createRouteClient, createRouteClientWithResponse } from "@/lib/supabase"
+import { ensureAuthProfile } from "@/lib/auth-profile"
+
+export async function GET(request: NextRequest) {
+  const { supabase, response: supabaseResponse } = createRouteClientWithResponse(request)
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return NextResponse.json(err("Sesión no encontrada"), { status: 401 })
+  }
+
+  const profile = await ensureAuthProfile(user)
+
+  if (!profile) {
+    return NextResponse.json(err("Perfil no encontrado"), { status: 404 })
+  }
+
+  const result = NextResponse.json(ok({ role: profile.role }))
+  for (const cookie of supabaseResponse.cookies.getAll()) {
+    result.cookies.set(cookie)
+  }
+
+  return result
+}
 
 // POST /api/auth/verify
 // Resends the Supabase signup confirmation email to the given address.

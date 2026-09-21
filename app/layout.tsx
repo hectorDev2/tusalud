@@ -3,6 +3,7 @@ import { Manrope, Inter } from "next/font/google"
 import "./globals.css"
 import { DevNavBar } from "@/components/dev-nav-bar"
 import { ToastProvider } from "@/components/toast"
+import { BugReportWidget } from "@/components/bug-report-widget"
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -53,6 +54,7 @@ export default function RootLayout({
         <DevNavBar />
         <ToastProvider>
           {children}
+          <BugReportWidget />
         </ToastProvider>
       </body>
     </html>
